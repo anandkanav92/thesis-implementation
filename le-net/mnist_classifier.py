@@ -1,4 +1,5 @@
 from models.lenet import LeNet5
+import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.datasets.mnist import MNIST
@@ -16,11 +17,11 @@ class Black_Magic():
   }
 
   def __init__(self,params):
-    self.device = torch.device(True if torch.cuda.is_available() else False)
-
+    self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    self.use_cuda = torch.cuda.is_available()
     self.params = params
     self.model = LeNet5()
-    if self.device:
+    if self.use_cuda:
       self.model.cuda()
     #True means gpu is available else False
 
@@ -55,7 +56,7 @@ class Black_Magic():
     for epoch in range(0,self.params['epoch']):
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
-        if self.device:
+        if self.use_cuda:
           images = images.cuda()
           labels = labels.cuda()
         output = self.model(images)
@@ -92,7 +93,7 @@ class Black_Magic():
     avg_loss = 0.0
     dataset_test_size = len(data_test_loader.dataset)
     for i, (images, labels) in enumerate(data_test_loader):
-      if self.device:
+      if self.use_cuda:
         images = images.cuda()
         labels = labels.cuda()
 
