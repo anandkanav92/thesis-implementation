@@ -1,5 +1,6 @@
 import time
 from mnist_classifier import Black_Magic
+from util.postgres_config import connect
 def main(params):
   container = Black_Magic(params)
   #read data
@@ -14,13 +15,17 @@ def main(params):
 
 if __name__ == '__main__':
     start_time = time.time()
-    param_dummy = {
-      "learning_rate" : 0.01,
-      "epoch" : 10,
-      "batch_size" : 5,
-      "loss_function": "cross_entropy",
-      "optimizer": "adam_optimizer"
-    }
-    main(param_dummy)
+    # param_dummy = {
+    #   "learning_rate" : 0.01,
+    #   "epoch" : 10,
+    #   "batch_size" : 5,
+    #   "loss_function": "cross_entropy",
+    #   "optimizer": "adam_optimizer"
+    # }
+    # main(param_dummy)
+
+    connect()
+    #connect to database
+
     print("--- %s seconds ---" % (time.time() - start_time))
 
