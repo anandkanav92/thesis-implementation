@@ -11,7 +11,6 @@ def config(filename='database.ini', section='postgresql'):
 
   # get section, default to postgresql
   db = {}
-  print(parser.sections())
   if parser.has_section(section):
       params = parser.items(section)
       for param in params:
@@ -31,11 +30,12 @@ def connect():
     # connect to the PostgreSQL server
     print('Connecting to the PostgreSQL database...')
     conn = psycopg2.connect(**params)
+    conn.autocommit=True
 
     # create a cursor
     cur = conn.cursor()
 
-# execute a statement
+    # execute a statement
     print('PostgreSQL database version:')
     cur.execute('SELECT version()')
 
@@ -43,11 +43,12 @@ def connect():
     db_version = cur.fetchone()
     print(db_version)
 
- # close the communication with the PostgreSQL
-    cur.close()
+    # close the communication with the PostgreSQL
+    #cur.close()
+    return cur
   except (Exception, psycopg2.DatabaseError) as error:
     print(error)
-  finally:
-    if conn is not None:
-      conn.close()
-      print('Database connection closed.')
+  # finally:
+  #   if conn is not None:
+  #     conn.close()
+  #     print('Database connection closed.')
