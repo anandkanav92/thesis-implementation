@@ -1,3 +1,4 @@
+
 from models.lenet import LeNet5
 import torch
 import torch.nn as nn
@@ -20,6 +21,7 @@ class Black_Magic():
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     self.use_cuda = torch.cuda.is_available()
     self.params = params
+    print(self.use_cuda)
     self.model = LeNet5()
     if self.use_cuda:
       self.model.cuda()
