@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>tune_it</title>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous"></script>
+  <!--   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+   -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="script_dashboard.js"></script>
+    <style>
+        .hidden {display: none;}
+    </style>
+  </head>
+  <body>
+    <!-- <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button> -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+         <a class="navbar-brand" href="#">Hyperparameter Tuning</a>
+         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item ">
+                <a class="nav-link" href="#">About</a>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="#">Tune it<span class="sr-only">(current)</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Results</a>
+              </li>
+            </ul>
+        </div>
+     </nav>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9" id="main-content">
+                    <form id="hyperparameters-form" method="post"  role="form" >
+                        <table class="table table-hover hp_table">
+                            <thead>
+                                <thead>
+                                    <tr>
+                                        <th scope="col" style="width:30%">#Hyperparameters</th>
+                                        <th scope="col">Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="epoch">Epochs</label>
+                                            <input type="number" class="form-control" id="epoch" aria-describedby="emailHelp" placeholder="Enter number of Epochs">
+                                            <small id="emailHelp" class="form-text text-muted">{Learning rate description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="epoch" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="batch_size">Batch Size</label>
+                                            <input type="number" class="form-control" id="batch_size" aria-describedby="emailHelp" placeholder="Enter Batch Size">
+                                            <small id="emailHelp" class="form-text text-muted">{Batch size description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="batch_size" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="loss_function">Loss Function</label>
+                                            <div class="dropdown">
+                                              <button class="btn btn-secondary dropdown-toggle" type="button" id="loss_function" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Select Loss function
+                                              </button>
+                                               <!-- "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood","kl_divergence" -->
+                                              <div class="dropdown-menu loss" aria-labelledby="dropdownMenuButton">
+                                                <a class="dropdown-item" id="cross_entropy" >Cross Entropy</a>
+                                                <a class="dropdown-item" id="l1_loss" >L1 Loss</a>
+                                                <a class="dropdown-item" id="mean_squared_loss" >Mean Squared Loss</a>
+                                                <a class="dropdown-item" id="negative_log_likelihood" >Negative Log Likelihood</a>
+                                                <!-- <a class="dropdown-item" id="kl_divergence" >Kullback–Leibler divergence</a> -->
+                                              </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="loss_function" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                     <tr>
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="optimizer">Optimizer Choice</label>
+                                            <div class="dropdown optim">
+                                              <button class="btn btn-secondary dropdown-toggle" type="button" id="optimizer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Select type of Optimizer
+                                              </button>
+                                                <!-- "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd" -->
+                                              <div class="dropdown-menu optim" aria-labelledby="dropdownMenuButton">
+                                                <a class="dropdown-item" id="adam_optimizer">Adam Optimizer</a>
+                                                <a class="dropdown-item" id="ada_delta">Ada Delta</a>
+                                                <a class="dropdown-item" id="ada_grad">Ada Gradient</a>
+                                                <a class="dropdown-item" id="averaged_sgd">Averaged Stochastic Gradient Descent</a>
+                                                <a class="dropdown-item" id="rms_prop">Root Mean Square Prop</a>
+                                                <a class="dropdown-item" id="sgd">Stochastic Gradient Descent</a>
+                                              </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="optimizer" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="adam_optimizer ada_delta ada_grad averaged_sgd rms_prop sgd hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="learning_rate">Learning Rate</label>
+                                            <input type="number" step="any" class="form-control" id="learning_rate" aria-describedby="emailHelp" placeholder="Enter Learning Rate">
+                                            <small id="emailHelp" class="form-text text-muted">{Learning rate description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="learning_rate" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="adam_optimizer ada_delta rms_prop hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="eps">Epsilon</label>
+                                            <input type="number" step="any" class="form-control" id="eps" aria-describedby="emailHelp" placeholder="Enter Epsilon Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Epsilon Description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="eps" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="adam_optimizer ada_delta ada_grad averaged_sgd rms_prop sgd hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="weight_decay">Weight Decay</label>
+                                            <input type="number" step="any" class="form-control" id="weight_decay" aria-describedby="emailHelp" placeholder="Enter Weight Decay Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Weight Decay  Description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="weight_decay" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                     <tr class="ada_delta hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="rho">RHO</label>
+                                            <input type="number" step="any" class="form-control" id="rho" aria-describedby="emailHelp" placeholder="Enter RHO Value">
+                                            <small id="emailHelp" class="form-text text-muted">{RHO  Description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="rho" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="ada_grad hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="lr_decay">Learning Rate Decay</label>
+                                            <input type="number" step="any" class="form-control" id="lr_decay" aria-describedby="emailHelp" placeholder="Enter Learning Rate Decay Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Learning Rate Decay description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="lr_decay" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="ada_grad hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="initial_accumulator_value"> Initial Accumulator </label>
+                                            <input type="number" step="any" class="form-control" id="initial_accumulator_value" aria-describedby="emailHelp" placeholder="Enter Initial Accumulator Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Initial Accumulator description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control"  id="initial_accumulator_value"aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="averaged_sgd rms_prop hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="alpha"> Alpha </label>
+                                            <input type="number" step="any" class="form-control" id="alpha" aria-describedby="emailHelp" placeholder="Enter Alpha Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Alpha description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="alpha" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="averaged_sgd hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="lambd"> Lambda </label>
+                                            <input type="number" step="any" class="form-control" id="lambd" aria-describedby="emailHelp" placeholder="Enter Lambda Value">
+                                            <small id="emailHelp" class="form-text text-muted">{Lambda description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="lambd" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="rms_prop sgd hidden">
+                                        <td>
+                                            <div class="form-group">
+                                            <label for="momentum"> Momentum </label>
+                                            <input type="number" step="any" class="form-control" id="momentum" aria-describedby="emailHelp" placeholder="Enter momentum Value">
+                                            <small id="emailHelp" class="form-text text-muted">{momentum description}</small>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                            <textarea class="form-control" id="momentum" aria-label="With textarea"></textarea>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+
+
+
+                                </tbody>
+                        </table>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+
+                    </form>
+                </div>
+            </div>
+            <div class="row" id="viz_link_container" style="display:none;">
+                <button class="btn btn-secondary" onClick="window.open('http://localhost:8097/env/RANDOM12345');" type="button" id="viz_link" aria-haspopup="true" aria-expanded="false">
+                    Watch your model intermediate results
+                </button>
+            </div>
+        </div>
+  </body>
+</html>
