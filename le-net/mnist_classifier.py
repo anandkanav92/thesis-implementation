@@ -89,7 +89,6 @@ class Black_Magic():
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
 
-        output = self.model(images)
 
         if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
           batch_size = int(self.params[Constants.BATCH_SIZE][Constants.VALUE])
@@ -100,6 +99,7 @@ class Black_Magic():
         if self.use_cuda:
           images = images.cuda()
           labels = labels.cuda()
+        output = self.model(images)
         loss = self.criterion(output, labels)
         if math.isnan(loss):
           return False
