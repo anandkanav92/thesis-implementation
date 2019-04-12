@@ -7,4 +7,4 @@
 #SBATCH --mail-type=END
 #SBATCH --gres=gpu
 module use /opt/insy/modulefiles
-srun python3 < main.py 
+srun python3 < main.py $*
