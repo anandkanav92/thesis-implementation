@@ -15,7 +15,7 @@ import random
 import logging
 import threading
 import time
-json_params = {"epoch": [1,5,10,20,25,30], "batch_size": [1,5,10,50,100,500], "learning_rate": [0.1,0.01,0.0001,1,10,5], "eps": [0.1,0.01,0.0001,1,10,5], "weight_decay": [0.1,0.01,0.0001,1,10,5], "rho": [0.1,0.01,0.25,0.5,0.75,0.99] , "lr_decay": [0.1,0.01,0.0001,1,10,5] , "initial_accumulator_value": [0.1,0.01,0.0001,1,10,5] , "alpha": [0.1,0.01,0.0001,1,10,5], "lambd": [0.1,0.01,0.0001,1,10,5] , "momentum": [0.1,0.01,0.0001,1,10,5], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"]}
+json_params = {"epoch": [1,5,10,20], "batch_size": [50,100,250,500], "learning_rate": [0.1,0.01,0.0001,.00001], "eps": [0.1,0.01,0.0001,.00001], "weight_decay": [0.1,0.01,0.0001,.00001], "rho": [0.25,0.75,0.5,0.99] , "lr_decay": [0.1,0.01,0.0001,0.00001] , "initial_accumulator_value": [0.1,0.01,0.0001,0.00001] , "alpha": [0.1,0.01,0.0001,0.00001], "lambd": [0.1,0.01,0.0001,0.00001] , "momentum": [0.1,0.01,0.0001,0.00001], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"]}
 # json_params = {"epoch": [1,1,1,1,1,1], "batch_size": [50,50,50,50,50,50], "learning_rate": [50,50,50,50,50,50], "eps": [0.1,0.01,0.0001,1,10,5], "weight_decay": [0.1,0.01,0.0001,1,10,5], "rho": [0.1,0.01,0.25,0.5,0.75,0.99] , "lr_decay": [0.1,0.01,0.0001,1,10,5] , "initial_accumulator_value": [0.1,0.01,0.0001,1,10,5] , "alpha": [0.1,0.01,0.0001,1,10,5], "lambd": [0.1,0.01,0.0001,1,10,5] , "momentum": [0.1,0.01,0.0001,1,10,5], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "sgd","sgd","sgd","sgd","sgd","sgd"]}
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
@@ -87,7 +87,7 @@ def randomize_the_json(key):
   if key == "loss_function":
     return random.randint(0, 3)
   else:
-    return random.randint(0, 5)
+    return random.randint(0, 3)
 
 def set_values(params):
   params["epoch"]["value"] = json_params["epoch"][randomize_the_json("epoch")]
@@ -133,6 +133,8 @@ if __name__ == '__main__':
     # params = set_defaults(param_dummy)
     # print(params)
     # main(params)
+    #main_json = {'epoch': {'comments': '', 'value': 10}, 'batch_size': {'comments': '', 'value': 500}, 'learning_rate': {'comments': '', 'value': 0.0001}, 'eps': {'comments': '', 'value': 0.0001}, 'weight_decay': {'comments': '', 'value': 0.0001}, 'rho': {'comments': '', 'value': 0.1}, 'lr_decay': {'comments': '', 'value': 0.01}, 'initial_accumulator_value': {'comments': '', 'value': 10}, 'alpha': {'comments': '', 'value': 5}, 'lambd': {'comments': '', 'value': 10}, 'momentum': {'comments': '', 'value': 1}, 'loss_function': {'comments': '', 'value': 'negative_log_likelihood'}, 'optimizer': {'comments': '', 'value': 'sgd'}}
+    #main(main_json)
     for i in range(0,50):
       main_json = set_values(main_json)
       main(main_json)

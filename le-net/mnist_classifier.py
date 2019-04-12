@@ -146,7 +146,7 @@ class Black_Magic():
       if self.use_cuda:
         images = images.cuda()
         labels = labels.cuda()
-        if labels_l1!=None:
+        if labels_l1 is not None:
           labels_l1 = labels_l1.cuda()
       output = self.model(images)
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
