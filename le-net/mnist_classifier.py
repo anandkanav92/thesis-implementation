@@ -1,3 +1,4 @@
+
 from models.lenet import LeNet5
 import torch
 import torch.nn as nn
@@ -47,6 +48,7 @@ class Black_Magic():
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     self.use_cuda = torch.cuda.is_available()
     self.params = params
+    print(self.use_cuda)
     self.model = LeNet5()
     self.viz = visdom.Visdom()
     self.push_to_viz = False
@@ -144,7 +146,7 @@ class Black_Magic():
       if self.use_cuda:
         images = images.cuda()
         labels = labels.cuda()
-        if labels_l1!=None:
+        if labels_l1 is not None:
           labels_l1 = labels_l1.cuda()
       output = self.model(images)
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
