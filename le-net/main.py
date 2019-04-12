@@ -21,6 +21,9 @@ logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
 
+def random_text_generator():
+  x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+  return x.join(str(time.time()))
 @app.route("/run_model", methods=['GET','POST'])
 def startTheModel():
   content = request.get_data()
@@ -30,9 +33,30 @@ def startTheModel():
   print("recieved params==>")
   print(data_dict)
   print(type(data_dict))
+  random_name = random_text_generator()
+  logger = logging.getLogger('thread-%s' % random_name)
+  logger.setLevel(logging.DEBUG)
 
-  threading.Thread(target=main, args=(data_dict,),name='try_1').start()
+  # create a file handler writing to a file named after the thread
+  file_handler = logging.FileHandler('thread-%s.log' % random_name)
 
+  formatter = logging.Formatter('(%(threadName)-10s) %(message)s')
+  file_handler.setFormatter(formatter)
+
+  logger.addHandler(file_handler)
+
+  threading.Thread(target=main, args=(data_dict,logger)).start()
+
+
+
+  # # create a custom formatter and register it for the file handler
+
+
+  # # register the file handler for the thread-specific logger
+
+  # delay = random.random()
+  # t = threading.Thread(target=worker, args=(delay, logger))
+  # t.start()
   return '{status: "Success"}'
   #main(data_dict)
 
