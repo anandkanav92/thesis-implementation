@@ -131,9 +131,16 @@ def set_values(params):
   return params
 
 if __name__ == '__main__':
-    #serve(app,host='0.0.0.0', port=5001)
+    serve(app,host='0.0.0.0', port=5001)
 
-    main_json = {"epoch": {"comments": "", "value": 1.0}, "batch_size": {"comments": "", "value": 100.0}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "rms_prop"}}
+    # main_json = {"epoch": {"comments": "", "value": 1.0}, "batch_size": {"comments": "", "value": 100.0}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "rms_prop"}}
+
+    # for i in range(0,50):
+    #   main_json = set_values(main_json)
+    #   main(main_json)
+
+
+
     # start_time = time.time()
     # param_dummy = {
     #   "user_id" : "random1234",
@@ -159,9 +166,7 @@ if __name__ == '__main__':
     # main(params)
     #main_json = {'epoch': {'comments': '', 'value': 10}, 'batch_size': {'comments': '', 'value': 500}, 'learning_rate': {'comments': '', 'value': 0.0001}, 'eps': {'comments': '', 'value': 0.0001}, 'weight_decay': {'comments': '', 'value': 0.0001}, 'rho': {'comments': '', 'value': 0.1}, 'lr_decay': {'comments': '', 'value': 0.01}, 'initial_accumulator_value': {'comments': '', 'value': 10}, 'alpha': {'comments': '', 'value': 5}, 'lambd': {'comments': '', 'value': 10}, 'momentum': {'comments': '', 'value': 1}, 'loss_function': {'comments': '', 'value': 'negative_log_likelihood'}, 'optimizer': {'comments': '', 'value': 'sgd'}}
     #main(main_json)
-    for i in range(0,50):
-      main_json = set_values(main_json)
-      main(main_json)
+
     # #connect to database
 
     # print("--- %s seconds ---" % (time.time() - start_time))
