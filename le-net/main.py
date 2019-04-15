@@ -61,6 +61,12 @@ def startTheModel():
   #main(data_dict)
 
 def main(params):
+  print("starting job")
+  print(params)
+  #remove
+  #my_json = params.decode('utf8').replace("'", '"')
+  params = json.loads(params,cls=Decoder)
+  #remove
   start_time = time.time()
   container = Black_Magic(params)
   #read data
@@ -130,8 +136,9 @@ def set_values(params):
   print(params)
   return params
 
-if __name__ == '__main__':
-    serve(app,host='0.0.0.0', port=5001)
+
+#if __name__ == '__main__':
+#    serve(app,host='0.0.0.0', port=5001)
 
     # main_json = {"epoch": {"comments": "", "value": 1.0}, "batch_size": {"comments": "", "value": 100.0}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "rms_prop"}}
 
@@ -171,4 +178,8 @@ if __name__ == '__main__':
 
     # print("--- %s seconds ---" % (time.time() - start_time))
 
+import sys
+print(len(sys.argv))
+print(sys.argv[1])
+main(sys.argv[1])
 
