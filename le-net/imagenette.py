@@ -30,11 +30,6 @@ class Imagenette(data.Dataset):
         train_data = [Image.open(x).convert('RGB') for x in train_dir.glob('**/*') if ( x.is_file() and x.parent.name is not "train" )]
         self.train_data = torch.stack(train_data)
       train_labels = [torch.tensor(class_name_to_id[x.parent.name]) for x in train_dir.glob('**/*') if ( x.is_file() and x.parent.name is not "train" )]
-      for x in train_dir.glob('**/*'):
-        if ( x.is_file() and x.parent.name is not "train" ):
-          print(class_name_to_id[x.parent.name])
-      print("printing training labels:")
-      print(train_labels)
       self.train_labels = torch.stack(train_labels)
     else:
       if self.transform is not None:

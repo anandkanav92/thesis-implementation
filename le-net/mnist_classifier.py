@@ -66,7 +66,6 @@ class Black_Magic():
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
-    print(type(data_train.train_data))
     #print(data_train.train_labels)
 
     data_test = Imagenette('./data/imagenette',
@@ -159,7 +158,6 @@ class Black_Magic():
     total_correct = 0
     avg_loss = 0.0
     labels_l1 = None
-    print(data_test_loader.dataset)
     dataset_test_size = len(data_test_loader.dataset)
     for i, (images, labels) in enumerate(data_test_loader):
 
@@ -188,7 +186,8 @@ class Black_Magic():
 
 
   def get_labels_for_L1(self,batch_size,labels):
-    temp = torch.zeros([batch_size, 10], dtype=torch.float)
+    temp = torch.zeros([len(labels), 10], dtype=torch.float)
+    #print(len(labels))
     #print(temp)
     #print(labels)
     index = 0
