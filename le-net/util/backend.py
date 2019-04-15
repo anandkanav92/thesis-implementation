@@ -19,5 +19,5 @@ def insert_precision(cursor,params,accuracy,time_taken):
     #   print(row)
     #cursor.execute("INSERT INTO variance_results (params, accuracy) VALUES (%s, %s) ",(params,accuracy))
   except Exception as error:
-    print("error"+error)
+    print(error)
     return False
