@@ -41,7 +41,9 @@ class Imagenette(data.Dataset):
         self.test_data = torch.stack(test_data)
 
       test_labels = [torch.tensor(class_name_to_id[x.parent.name]) for x in val_dir.glob('**/*') if (x.is_file() and x.parent.name is not "val")]
+      print(len(test_labels))
       self.test_labels = torch.stack(test_labels)
+
 
 
 
