@@ -158,6 +158,7 @@ class Black_Magic():
     total_correct = 0
     avg_loss = 0.0
     labels_l1 = None
+    print(len(data_test_loader.dataset))
     dataset_test_size = len(data_test_loader.dataset)
     for i, (images, labels) in enumerate(data_test_loader):
 
