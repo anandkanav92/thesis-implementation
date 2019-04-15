@@ -105,7 +105,7 @@ class Black_Magic():
     self.model.train()
     loss_list, batch_list = [], []
     loss = None
-    print(data_train_loader)
+    #print(data_train_loader)
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
@@ -121,8 +121,8 @@ class Black_Magic():
           images = images.cuda()
           labels = labels.cuda()
         output = self.model(images)
-        print(output.size())
-        print(labels.size())
+        #print(output.size())
+        #print(labels.size())
         loss = self.criterion(output, labels)
         if math.isnan(loss):
           return False
