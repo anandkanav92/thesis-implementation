@@ -13,7 +13,7 @@ import visdom
 import sys
 import logging
 import math
-
+from imagenette import Imagenette
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
@@ -61,18 +61,38 @@ class Black_Magic():
   def _print_all_params(self,params):
     print(params)
 
-  def read_data(self):
+  def read_data_imagenette(self):
+    data_train = Imagenette('./data/imagenette',
+                       transform=transforms.Compose([
+                           transforms.Resize((32, 32)),
+                           transforms.ToTensor()]))
+    print(type(data_train.train_data))
+    #print(data_train.train_labels)
+
+    data_test = Imagenette('./data/imagenette',
+                      train=False,
+                      transform=transforms.Compose([
+                          transforms.Resize((32, 32)),
+                          transforms.ToTensor()]))
+    data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
+    data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
+    return data_train_loader,data_test_loader
+
+  def read_data_mnist(self):
     data_train = MNIST('./data/mnist',
                        download=True,
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
+    #print(data_train.train_data.size())
+
     data_test = MNIST('./data/mnist',
                       train=False,
                       download=True,
                       transform=transforms.Compose([
                           transforms.Resize((32, 32)),
                           transforms.ToTensor()]))
+    #print(data_test.dataset)
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader
@@ -85,6 +105,7 @@ class Black_Magic():
     self.model.train()
     loss_list, batch_list = [], []
     loss = None
+    print(data_train_loader)
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
@@ -100,6 +121,8 @@ class Black_Magic():
           images = images.cuda()
           labels = labels.cuda()
         output = self.model(images)
+        print(output.size())
+        print(labels.size())
         loss = self.criterion(output, labels)
         if math.isnan(loss):
           return False
@@ -136,6 +159,7 @@ class Black_Magic():
     total_correct = 0
     avg_loss = 0.0
     labels_l1 = None
+    print(data_test_loader.dataset)
     dataset_test_size = len(data_test_loader.dataset)
     for i, (images, labels) in enumerate(data_test_loader):
 

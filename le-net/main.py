@@ -11,10 +11,12 @@ app = Flask(__name__)
 from waitress import serve
 from collections import namedtuple
 import random
-
+from imagenette import Imagenette
 import logging
 import threading
 import time
+import torchvision.transforms as transforms
+
 json_params = {"epoch": [1,5,10,20], "batch_size": [50,100,250,500], "learning_rate": [0.1,0.01,0.0001,.00001], "eps": [0.1,0.01,0.0001,.00001], "weight_decay": [0.1,0.01,0.0001,.00001], "rho": [0.25,0.75,0.5,0.99] , "lr_decay": [0.1,0.01,0.0001,0.00001] , "initial_accumulator_value": [0.1,0.01,0.0001,0.00001] , "alpha": [0.1,0.01,0.0001,0.00001], "lambd": [0.1,0.01,0.0001,0.00001] , "momentum": [0.1,0.01,0.0001,0.00001], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"]}
 # json_params = {"epoch": [1,1,1,1,1,1], "batch_size": [50,50,50,50,50,50], "learning_rate": [50,50,50,50,50,50], "eps": [0.1,0.01,0.0001,1,10,5], "weight_decay": [0.1,0.01,0.0001,1,10,5], "rho": [0.1,0.01,0.25,0.5,0.75,0.99] , "lr_decay": [0.1,0.01,0.0001,1,10,5] , "initial_accumulator_value": [0.1,0.01,0.0001,1,10,5] , "alpha": [0.1,0.01,0.0001,1,10,5], "lambd": [0.1,0.01,0.0001,1,10,5] , "momentum": [0.1,0.01,0.0001,1,10,5], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "sgd","sgd","sgd","sgd","sgd","sgd"]}
 logging.basicConfig(level=logging.DEBUG,
@@ -61,17 +63,12 @@ def startTheModel():
   #main(data_dict)
 
 def main(params):
-  print("starting job")
-  print(params)
-  #remove
-  #my_json = params.decode('utf8').replace("'", '"')
-  params = json.loads(params,cls=Decoder)
-  #remove
   start_time = time.time()
   container = Black_Magic(params)
   #read data
-  data_train_loader,data_test_loader = container.read_data()
-  print(len(data_test_loader.dataset))
+  # data_train_loader,data_test_loader = container.read_data_mnist()
+  data_train_loader,data_test_loader = container.read_data_imagenette()
+  #print(len(data_test_loader.dataset))
   #train the model
   if container.train(data_train_loader):
     #test the model
@@ -137,14 +134,22 @@ def set_values(params):
   return params
 
 
-#if __name__ == '__main__':
-#    serve(app,host='0.0.0.0', port=5001)
+if __name__ == '__main__':
+  #serve(app,host='0.0.0.0', port=5001)
 
-    # main_json = {"epoch": {"comments": "", "value": 1.0}, "batch_size": {"comments": "", "value": 100.0}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "rms_prop"}}
+  main_json = {"epoch": {"comments": "", "value": 1.0}, "batch_size": {"comments": "", "value": 100.0}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "rms_prop"}}
 
-    # for i in range(0,50):
-    #   main_json = set_values(main_json)
-    #   main(main_json)
+  for i in range(0,50):
+    main_json = set_values(main_json)
+    main(main_json)
+  # transform=transforms.Compose([
+  #                          transforms.Resize((32, 32)),
+  #                          transforms.ToTensor()])
+
+  # imagenette_set = Imagenette( '/Users/kanavanand/Downloads/imagenette-160/',transform=transform,target_transform=transform)
+  # print(imagenette_set.X_train)
+  # print(len(imagenette_set.y_train))
+  # print(imagenette_set.class_size)
 
 
 
@@ -178,8 +183,8 @@ def set_values(params):
 
     # print("--- %s seconds ---" % (time.time() - start_time))
 
-import sys
-print(len(sys.argv))
-print(sys.argv[1])
-main(sys.argv[1])
+#import sys
+#print(len(sys.argv))
+#print(sys.argv[1])
+#main(sys.argv[1])
 
