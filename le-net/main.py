@@ -63,7 +63,6 @@ def startTheModel():
   #main(data_dict)
 
 def main(params):
-
   start_time = time.time()
   container = Black_Magic(params)
   #read data
@@ -134,6 +133,7 @@ def set_values(params):
   print(params)
   return params
 
+
 if __name__ == '__main__':
   #serve(app,host='0.0.0.0', port=5001)
 
@@ -183,4 +183,8 @@ if __name__ == '__main__':
 
     # print("--- %s seconds ---" % (time.time() - start_time))
 
+#import sys
+#print(len(sys.argv))
+#print(sys.argv[1])
+#main(sys.argv[1])
 
