@@ -14,7 +14,7 @@ import sys
 import logging
 import math
 from imagenette import Imagenette
-logging.basicConfig(level=logging.DEBUG,
+logger = logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
 class Black_Magic():
@@ -48,10 +48,10 @@ class Black_Magic():
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     self.use_cuda = torch.cuda.is_available()
     self.params = params
-    print(self.use_cuda)
+    logger.debug(self.use_cuda)
     self.model = LeNet5()
     self.viz = visdom.Visdom()
-    self.push_to_viz = False
+    self.push_to_viz = True
     if self.use_cuda:
       self.model.cuda()
     #True means gpu is available else False
@@ -66,7 +66,6 @@ class Black_Magic():
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
-    #print(data_train.train_labels)
 
     data_test = Imagenette('./data/imagenette',
                       train=False,
@@ -83,7 +82,6 @@ class Black_Magic():
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
-    #print(data_train.train_data.size())
 
     data_test = MNIST('./data/mnist',
                       train=False,
@@ -91,7 +89,6 @@ class Black_Magic():
                       transform=transforms.Compose([
                           transforms.Resize((32, 32)),
                           transforms.ToTensor()]))
-    #print(data_test.dataset)
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader
@@ -102,10 +99,9 @@ class Black_Magic():
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
-    loss_list, batch_list = [], []
     loss = None
-    #print(data_train_loader)
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
+      loss_list, batch_list = [], []
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
 
@@ -114,29 +110,25 @@ class Black_Magic():
           batch_size = int(self.params[Constants.BATCH_SIZE][Constants.VALUE])
           labels = self.get_labels_for_L1(batch_size,labels)
 
-        #print(output.size())
-        #print(labels.data.cpu().numpy())
         if self.use_cuda:
           images = images.cuda()
           labels = labels.cuda()
         output = self.model(images)
-        #print(output.size())
-        #print(labels.size())
         loss = self.criterion(output, labels)
+        loss_list.append(loss.detach().cpu().item())
+        batch_list.append(i+1)
         if math.isnan(loss):
           return False
-        if i % 100 == 0:
-          loss_list.append(loss.detach().cpu().item())
-          batch_list.append(i+1)
-          logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
+        if i % 10 == 0:
+          logger.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
 
           # Update Visualization
-          if self.viz.check_connection() and self.push_to_viz:
+        if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
-            self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(batch_list),
-                                     win=self.cur_batch_win, name='current_batch_loss',
-                                     update=(None if self.cur_batch_win is None else 'replace'),
-                                     opts=self.cur_batch_win_opts)
+          self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(batch_list),
+                                   win=self.cur_batch_win, name='current_batch_loss',
+                                   update=(None if self.cur_batch_win is None else 'append'),
+                                   opts=self.cur_batch_win_opts)
 
         loss.backward()
         optimizer.step()
@@ -146,7 +138,6 @@ class Black_Magic():
     return True
   def _get_loss_function(self,loss_function_name):
     loss_function = self.loss_switcher.get(loss_function_name, lambda: "Unavailable loss function")
-    #print(loss_function)
     return loss_function()
 
   def _get_optimizer(self,optimizer_function_name):
@@ -158,7 +149,6 @@ class Black_Magic():
     total_correct = 0
     avg_loss = 0.0
     labels_l1 = None
-    print(len(data_test_loader.dataset))
     dataset_test_size = len(data_test_loader.dataset)
     for i, (images, labels) in enumerate(data_test_loader):
 
@@ -182,18 +172,15 @@ class Black_Magic():
 
     avg_loss /= dataset_test_size
     self.precision = float(total_correct) / dataset_test_size
-    print('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), self.precision))
+    logger.debug('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), self.precision))
 
 
 
   def get_labels_for_L1(self,batch_size,labels):
     temp = torch.zeros([len(labels), 10], dtype=torch.float)
-    #print(len(labels))
     #print(temp)
-    #print(labels)
     index = 0
     for row in labels:
-      #print(row.item())
       temp[index][row.item()] = 1
       index+=1
     return temp.float()

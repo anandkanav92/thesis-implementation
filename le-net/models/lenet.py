@@ -20,12 +20,12 @@ class LeNet5(nn.Module):
     super(LeNet5, self).__init__()
     #torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
     self.convnet = nn.Sequential(OrderedDict([
-      ('c1', nn.Conv2d(3, 6, kernel_size=(5, 5))),        #32x32 -> 28x28x6
+      ('c1', nn.Conv2d(3, 6, kernel_size=(5, 5))),        #32x32 -> 28x28x6  ->156
       ('relu1', nn.ReLU()),                               #32x32 -> 28x28x6
-      ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #28x28x6 -> 14x14x6
-      ('c3', nn.Conv2d(6, 16, kernel_size=(5, 5))),       #14x14x6 -> 10x110x16
+      ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #28x28x6 -> 14x14x6 -> 78
+      ('c3', nn.Conv2d(6, 16, kernel_size=(5, 5))),       #14x14x6 -> 10x110x16 -> 74
       ('relu3', nn.ReLU()),
-      ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #16x5x5
+      ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #16x5x5  -> 37
       ('c5', nn.Conv2d(16, 120, kernel_size=(5, 5))),     #120x1x1
       ('relu5', nn.ReLU())
     ]))

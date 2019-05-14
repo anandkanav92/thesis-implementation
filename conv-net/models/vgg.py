@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 _POOL = 'P'
 cfg = {
+    'VGG3': [64, _POOL, 128, _POOL, 256,_POOL,_POOL],
     'VGG11': [64, _POOL, 128, _POOL, 256, 256, _POOL, 512, 512, _POOL, 512, 512, _POOL],
     'VGG13': [64, 64, _POOL, 128, 128, _POOL, 256, 256, _POOL, 512, 512, _POOL, 512, 512, _POOL],
     'VGG16': [64, 64, _POOL, 128, 128, _POOL, 256, 256, 256, _POOL, 512, 512, 512, _POOL, 512, 512, 512, _POOL],
@@ -16,6 +17,7 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         self.features = self._make_layers(cfg[vgg_name])
         print(self.features)
+        #self.classifier = nn.Linear(1024, 200)
         self.classifier = nn.Linear(1024, 200)
 
     def forward(self, x):

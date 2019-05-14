@@ -94,6 +94,7 @@ def test(epoch):
         torch.save(state, './checkpoint/ckpt.t7')
         best_acc = acc
 
+
 def pre_train(epoch,batch_size,learning_rate,weight_decay,momentum):
     start_epoch=0
     use_cuda=False
@@ -131,7 +132,7 @@ def pre_train(epoch,batch_size,learning_rate,weight_decay,momentum):
 
 
     print('==> creating model..')
-    net = VGG('VGG11')
+    net = VGG('VGG3')
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(),learning_rate, momentum, weight_decay)
@@ -152,10 +153,12 @@ def pre_train(epoch,batch_size,learning_rate,weight_decay,momentum):
 if __name__ == '__main__':
 
 
+    # dummy_dict = {
+    #     "learning_rate": 1,
+    #     "epoch" : 16,
+    #     "batch_size" : 50,
 
+    # }
 
-    # Training
-
-
-
-    serve(app,host='0.0.0.0', port=5001)
+    # start the server
+    #serve(app,host='0.0.0.0', port=5001)

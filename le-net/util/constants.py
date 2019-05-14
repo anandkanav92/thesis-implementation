@@ -1,20 +1,23 @@
 class Constants:
 
 
+
+
+
   USER_ID = "user_id"
   BACKGROUND_INFO = "background_info"
-  LEARNING_RATE = "learning_rate"
-  EPOCH = "epoch"
-  BATCH_SIZE = "batch_size"
+  LEARNING_RATE = "learningRate"
+  EPOCH = "epochs"
+  BATCH_SIZE = "batchSize"
   RHO = "rho"
-  LR_DECAY = "lr_decay"
-  INITIAL_ACCUMULATOR_VALUE = "initial_accumulator_value"
-  LAMBD = "lambd"
+  LR_DECAY = "learningRateDecay"
+  INITIAL_ACCUMULATOR_VALUE = "initialAccumulator"
+  LAMBD = "lambda"
   ALPHA = "alpha"
-  EPS = "eps"
+  EPS = "epsilon"
   MOMENTUM = "momentum"
-  WEIGHT_DECAY = "weight_decay"
-  LOSS_FUNCTION = "loss_function"
+  WEIGHT_DECAY = "weightDecay"
+  LOSS_FUNCTION = "lossFunction"
   OPTIMIZER = "optimizer"
 
   #loss constants
@@ -34,5 +37,5 @@ class Constants:
 
   #VALUE COMMENTS
   VALUE = "value"
-  COMMENTS = "comments"
+  COMMENTS = "comment"
 

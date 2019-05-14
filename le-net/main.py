@@ -3,11 +3,14 @@ from mnist_classifier import Black_Magic
 from util.postgres_config import connect
 from util.backend import *
 from util.constants import Constants
-from util.json_decoder import Decoder
+from util.json_decoder import *
 # server related stuff
 from flask import Flask, request
 import json
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
+
 from waitress import serve
 from collections import namedtuple
 import random
@@ -16,28 +19,68 @@ import logging
 import threading
 import time
 import torchvision.transforms as transforms
-
-json_params = {"epoch": [10,20,30,35], "batch_size": [5,10,25,50], "learning_rate": [0.1,0.01,0.0001,.00001], "eps": [0.1,0.01,0.0001,.00001], "weight_decay": [0.1,0.01,0.0001,.00001], "rho": [0.25,0.75,0.5,0.99] , "lr_decay": [0.1,0.01,0.0001,0.00001] , "initial_accumulator_value": [0.1,0.01,0.0001,0.00001] , "alpha": [0.1,0.01,0.0001,0.00001], "lambd": [0.1,0.01,0.0001,0.00001] , "momentum": [0.1,0.01,0.0001,0.00001], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"]}
-# json_params = {"epoch": [1,1,1,1,1,1], "batch_size": [50,50,50,50,50,50], "learning_rate": [50,50,50,50,50,50], "eps": [0.1,0.01,0.0001,1,10,5], "weight_decay": [0.1,0.01,0.0001,1,10,5], "rho": [0.1,0.01,0.25,0.5,0.75,0.99] , "lr_decay": [0.1,0.01,0.0001,1,10,5] , "initial_accumulator_value": [0.1,0.01,0.0001,1,10,5] , "alpha": [0.1,0.01,0.0001,1,10,5], "lambd": [0.1,0.01,0.0001,1,10,5] , "momentum": [0.1,0.01,0.0001,1,10,5], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "sgd","sgd","sgd","sgd","sgd","sgd"]}
-logging.basicConfig(level=logging.DEBUG,
-                    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
-                    )
+import uuid
+import string
+from memory_profiler import profile
+threads = []
 
 def random_text_generator():
   x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
   return x.join(str(time.time()))
+
+random_name = random_text_generator()
+logger = logging.getLogger('thread-%s' % random_name)
+logger.setLevel(logging.DEBUG)
+
+# json_params = {"epoch": [10,20,30,35], "batch_size": [5,10,25,50], "learning_rate": [0.1,0.01,0.0001,.00001], "eps": [0.1,0.01,0.0001,.00001], "weight_decay": [0.1,0.01,0.0001,.00001], "rho": [0.25,0.75,0.5,0.99] , "lr_decay": [0.1,0.01,0.0001,0.00001] , "initial_accumulator_value": [0.1,0.01,0.0001,0.00001] , "alpha": [0.1,0.01,0.0001,0.00001], "lambd": [0.1,0.01,0.0001,0.00001] , "momentum": [0.1,0.01,0.0001,0.00001], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"]}
+
+
+# json_params = {"epoch": [1,1,1,1,1,1], "batch_size": [50,50,50,50,50,50], "learning_rate": [50,50,50,50,50,50], "eps": [0.1,0.01,0.0001,1,10,5], "weight_decay": [0.1,0.01,0.0001,1,10,5], "rho": [0.1,0.01,0.25,0.5,0.75,0.99] , "lr_decay": [0.1,0.01,0.0001,1,10,5] , "initial_accumulator_value": [0.1,0.01,0.0001,1,10,5] , "alpha": [0.1,0.01,0.0001,1,10,5], "lambd": [0.1,0.01,0.0001,1,10,5] , "momentum": [0.1,0.01,0.0001,1,10,5], "loss_function": [ "cross_entropy","l1_loss","mean_squared_loss","negative_log_likelihood"], "optimizer": [ "sgd","sgd","sgd","sgd","sgd","sgd"]}
+
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+                    )
+@app.route("/save_backgroundinfo", methods=['GET','POST'])
+def save_background_info():
+  content = request.get_data()
+  my_json = content.decode('utf8').replace("'",'"')
+  data_dict = json.loads(my_json,cls=Decoder_int)
+  cursor = connect(logger)
+  user_ids = fetch_all_users(cursor,logger)
+  found = False;
+  user_id=''
+  while not found:
+    user_id = uuid.uuid4().hex[:6].upper()
+    if (user_id not in user_ids) and user_id is not '':
+      found=True
+  data_dict['user_id'] = user_id
+  result = insert_background_info(cursor,data_dict,logger)
+  logger.debug(json.dumps(result))
+  return json.dumps(result)
+
+
+@app.route("/get_results", methods=['GET'])
+def get_user_results():
+  data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
+  cursor = connect(logger)
+  results = get_result_data(cursor,data_dict['user_id'],logger)
+  #logger.debug(results)
+  if results is None:
+    return json.dumps({"status": 0})
+  else:
+    logger.debug(results)
+    return json.dumps({"status": 1,"rows" : results})
+
+
 @app.route("/run_model", methods=['GET','POST'])
+@profile
 def startTheModel():
+  logger.debug(threading.active_count())
   content = request.get_data()
   my_json = content.decode('utf8').replace("'", '"')
   data_dict = json.loads(my_json,cls=Decoder)
-  #data_object = json.loads(my_json, object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
-  print("recieved params==>")
-  print(data_dict)
-  print(type(data_dict))
-  random_name = random_text_generator()
-  logger = logging.getLogger('thread-%s' % random_name)
-  logger.setLevel(logging.DEBUG)
+
 
   # create a file handler writing to a file named after the thread
   file_handler = logging.FileHandler('thread-%s.log' % random_name)
@@ -47,28 +90,32 @@ def startTheModel():
 
   logger.addHandler(file_handler)
 
-  threading.Thread(target=main, args=(data_dict,logger)).start()
-
-
-
-  # # create a custom formatter and register it for the file handler
-
-
-  # # register the file handler for the thread-specific logger
-
-  # delay = random.random()
-  # t = threading.Thread(target=worker, args=(delay, logger))
-  # t.start()
+  threading.Thread(target=main, args=(data_dict,logger), name=data_dict['user_id']).start()
   return '{status: "Success"}'
-  #main(data_dict)
 
-def main(params):
+
+@app.route("/get_status", methods=['GET'])
+def get_execution_status():
+  data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
+  for thread in threading.enumerate():
+    if thread.getName()==data_dict['user_id']:
+      return '{status: "Processing"}'
+  return '{status: "Finished"}'
+
+
+def main(params,logger):
+
   start_time = time.time()
+
+  #set defaults
+  params = set_defaults(params)
+
   container = Black_Magic(params)
+  logger.info("recieved parameters: ")
+  logger.info(json.dumps(params))
   #read data
   # data_train_loader,data_test_loader = container.read_data_mnist()
   data_train_loader,data_test_loader = container.read_data_imagenette()
-  #print(len(data_test_loader.dataset))
   #train the model
   if container.train(data_train_loader):
     #test the model
@@ -76,45 +123,52 @@ def main(params):
   else:
     container.precision = -1
   total_time = time.time() - start_time
-  cursor = connect()
-  if container.precision!=None:
-    if insert_precision(cursor,json.dumps(params),container.precision,float(total_time)):
-      print("Successfully inserted.")
+  logger.info("training and testing finished.")
+  cursor = connect(logger)
+  if container.precision is not None:
+    if cursor is not None:
+      if insert_user_results(cursor,json.dumps(params),container.precision,float(total_time),logger,params['user_id']):
+        logger.info("Successfully inserted.")
+      else:
+        logger.info("Insertion failed.")
     else:
-      print("Insertion failed.")
+      logger.info(json.dumps(params)+" "+str(container.precision)+" "+str(float(total_time)))
   else:
-    print("precision is None.")
+    logger.critical("precision is None.")
+
 
 def set_defaults(params):
-  if not Constants.RHO in params:
-    params[Constants.RHO] = 0.9
-  if not Constants.LR_DECAY in params:
-    params[Constants.LR_DECAY] = 0
-  if not Constants.INITIAL_ACCUMULATOR_VALUE in params:
-    params[Constants.INITIAL_ACCUMULATOR_VALUE] = 0
-  if not Constants.LAMBD in params:
-    params[Constants.LAMBD] = 0.0001
-  if not Constants.ALPHA in params:
-    params[Constants.ALPHA] = 0.75
-  if not Constants.EPS in params:
-    params[Constants.EPS] = 1e-06
-  if not Constants.MOMENTUM in params:
-    params[Constants.MOMENTUM] = 0
-  if not Constants.EPOCH in params:
-    params[Constants.EPOCH] = 10
-  if not Constants.BATCH_SIZE in params:
-    params[Constants.BATCH_SIZE] = 1
-  if not Constants.LEARNING_RATE in params:
-    params[Constants.LEARNING_RATE] = 1
-  if not Constants.WEIGHT_DECAY in params:
-    params[Constants.WEIGHT_DECAY] = 1
-
+  if params[Constants.RHO][Constants.VALUE] == '':
+    params[Constants.RHO][Constants.VALUE] = 0.9
+  if params[Constants.LR_DECAY][Constants.VALUE] == '':
+    params[Constants.LR_DECAY][Constants.VALUE] = 0
+  if params[Constants.INITIAL_ACCUMULATOR_VALUE][Constants.VALUE] == '':
+    params[Constants.INITIAL_ACCUMULATOR_VALUE][Constants.VALUE] = 0
+  if params[Constants.LAMBD][Constants.VALUE] == '':
+    params[Constants.LAMBD][Constants.VALUE] = 0.0001
+  if params[Constants.ALPHA][Constants.VALUE] == '':
+    params[Constants.ALPHA][Constants.VALUE] = 0.75
+  if params[Constants.EPS][Constants.VALUE] == '':
+    params[Constants.EPS][Constants.VALUE] = 1e-06
+  if params[Constants.MOMENTUM][Constants.VALUE] == '':
+    params[Constants.MOMENTUM][Constants.VALUE] = 0
+  if params[Constants.EPOCH][Constants.VALUE] == '':
+    params[Constants.EPOCH][Constants.VALUE] = 10
+  if params[Constants.BATCH_SIZE][Constants.VALUE] == '':
+    params[Constants.BATCH_SIZE][Constants.VALUE] = 1
+  if params[Constants.LEARNING_RATE][Constants.VALUE] == '':
+    params[Constants.LEARNING_RATE][Constants.VALUE] = 1
+  if params[Constants.WEIGHT_DECAY][Constants.VALUE] == '':
+    params[Constants.WEIGHT_DECAY][Constants.VALUE] = 1
   return params
+
+
 def randomize_the_json(key):
   if key == "loss_function":
     return random.randint(0, 3)
   else:
     return random.randint(0, 3)
+
 
 def set_values(params):
   params["epoch"]["value"] = json_params["epoch"][randomize_the_json("epoch")]
@@ -135,22 +189,20 @@ def set_values(params):
 
 
 if __name__ == '__main__':
-  #serve(app,host='0.0.0.0', port=5001)
+  serve(app,host='0.0.0.0', port=5001)
 
-  main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
-  # main(main_json)
 
-  for i in range(0,50):
-    main_json = set_values(main_json)
-    main(main_json)
+  # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
+  # # main(main_json)
+
+  # for i in range(0,50):
+  #   main_json = set_values(main_json)
+  #   main(main_json)
   # transform=transforms.Compose([
   #                          transforms.Resize((32, 32)),
   #                          transforms.ToTensor()])
 
   # imagenette_set = Imagenette( '/Users/kanavanand/Downloads/imagenette-160/',transform=transform,target_transform=transform)
-  # print(imagenette_set.X_train)
-  # print(len(imagenette_set.y_train))
-  # print(imagenette_set.class_size)
 
 
 
@@ -175,17 +227,13 @@ if __name__ == '__main__':
     #   # "adam_optimizer","ada_delta","averaged_sgd","rms_prop","sgd","ada_grad"
     # }
     # params = set_defaults(param_dummy)
-    # print(params)
     # main(params)
     #main_json = {'epoch': {'comments': '', 'value': 10}, 'batch_size': {'comments': '', 'value': 500}, 'learning_rate': {'comments': '', 'value': 0.0001}, 'eps': {'comments': '', 'value': 0.0001}, 'weight_decay': {'comments': '', 'value': 0.0001}, 'rho': {'comments': '', 'value': 0.1}, 'lr_decay': {'comments': '', 'value': 0.01}, 'initial_accumulator_value': {'comments': '', 'value': 10}, 'alpha': {'comments': '', 'value': 5}, 'lambd': {'comments': '', 'value': 10}, 'momentum': {'comments': '', 'value': 1}, 'loss_function': {'comments': '', 'value': 'negative_log_likelihood'}, 'optimizer': {'comments': '', 'value': 'sgd'}}
     #main(main_json)
 
     # #connect to database
 
-    # print("--- %s seconds ---" % (time.time() - start_time))
 
 #import sys
-#print(len(sys.argv))
-#print(sys.argv[1])
 #main(sys.argv[1])
 

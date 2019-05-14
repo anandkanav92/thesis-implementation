@@ -20,7 +20,7 @@ def config(filename='database.ini', section='postgresql'):
 
   return db
 
-def connect():
+def connect(logger):
   """ Connect to the PostgreSQL database server """
   conn = None
   try:
@@ -28,26 +28,20 @@ def connect():
     params = config(CONFIG_FILE)
 
     # connect to the PostgreSQL server
-    print('Connecting to the PostgreSQL database...')
+    logger.info('Connecting to the PostgreSQL database...')
     conn = psycopg2.connect(**params)
     conn.autocommit=True
 
     # create a cursor
     cur = conn.cursor()
 
-    # execute a statement
-    print('PostgreSQL database version:')
-    cur.execute('SELECT version()')
-
-    # display the PostgreSQL database server version
-    db_version = cur.fetchone()
-    print(db_version)
+    logger.info("Connection created successfully")
 
     # close the communication with the PostgreSQL
     #cur.close()
     return cur
   except (Exception, psycopg2.DatabaseError) as error:
-    print(error)
+    logging.error("Connection failed")
   # finally:
   #   if conn is not None:
   #     conn.close()
