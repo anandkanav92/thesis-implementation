@@ -15,7 +15,7 @@ import logging
 import math
 from imagenette import Imagenette
 from torchsummary import summary
-
+import torchvision.models as tmodel
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
@@ -53,8 +53,9 @@ class Black_Magic():
     self.use_cuda = torch.cuda.is_available()
     self.params = params
     #logging.debug(self.use_cuda)
-    self.model = LeNet5()
-    logging.debug(summary(self.model, (3, 128, 128)))
+    # self.model = LeNet5()
+    self.model = tmodel.resnet18(pretrained=False,num_classes=10)
+    logging.debug(summary(self.model, (3, 224, 224)))
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
@@ -70,13 +71,13 @@ class Black_Magic():
   def read_data_imagenette(self):
     data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
-                           transforms.Resize((128, 128)),
+                           transforms.Resize((224, 224)),
                            transforms.ToTensor()]))
 
     data_test = Imagenette('./data/imagenette',
                       train=False,
                       transform=transforms.Compose([
-                          transforms.Resize((128, 128)),
+                          transforms.Resize((224, 224)),
                           transforms.ToTensor()]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
@@ -190,9 +191,5 @@ class Black_Magic():
       temp[index][row.item()] = 1
       index+=1
     return temp.float()
-
-
-
-
 
 
