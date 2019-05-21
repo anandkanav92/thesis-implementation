@@ -14,6 +14,7 @@ import sys
 import logging
 import math
 from imagenette import Imagenette
+from models.squeeze_me import squeezenet1_1
 from torchsummary import summary
 import torchvision.models as tmodel
 logging.basicConfig(level=logging.DEBUG,
@@ -54,8 +55,8 @@ class Black_Magic():
     self.params = params
     #logging.debug(self.use_cuda)
     # self.model = LeNet5()
-    self.model = tmodel.resnet18(pretrained=False,num_classes=10)
-    logging.debug(summary(self.model, (3, 224, 224)))
+    self.model = squeezenet1_1(pretrained=False,num_classes=10)
+    logging.debug(summary(self.model, (3, 128, 128)))
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
@@ -169,12 +170,16 @@ class Black_Magic():
         if labels_l1 is not None:
           labels_l1 = labels_l1.cuda()
       output = self.model(images)
+
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
         avg_loss += self.criterion(output, labels_l1).sum()
       else:
         avg_loss += self.criterion(output, labels).sum()
-
+      logging.debug(pred)
       pred = output.detach().max(1)[1]
+      logging.debug(pred)
+      logging.debug(labels)
+      #what about l1 loss
       total_correct += pred.eq(labels.view_as(pred)).sum()
 
     avg_loss /= dataset_test_size
