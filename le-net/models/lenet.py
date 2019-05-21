@@ -1,6 +1,14 @@
 import torch.nn as nn
 from collections import OrderedDict
 
+class PrintLayer(nn.Module):
+    def __init__(self):
+        super(PrintLayer, self).__init__()
+
+    def forward(self, x):
+        # Do your print / debug stuff here
+        # print(x.size())
+        return x
 
 class LeNet5(nn.Module):
   """
@@ -19,16 +27,46 @@ class LeNet5(nn.Module):
   def __init__(self):
     super(LeNet5, self).__init__()
     #torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
+    # self.convnet = nn.Sequential(OrderedDict([
+    #   ('c1', nn.Conv2d(3, 6, kernel_size=(5, 5))),        #32x32 -> 28x28x6  ->156
+    #   ('relu1', nn.ReLU()),                               #32x32 -> 28x28x6
+    #   ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #28x28x6 -> 14x14x6 -> 78
+    #   ('c3', nn.Conv2d(6, 16, kernel_size=(5, 5))),       #14x14x6 -> 10x110x16 -> 74
+    #   ('relu3', nn.ReLU()),
+    #   ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #16x5x5  -> 37
+    #   ('c5', nn.Conv2d(16, 120, kernel_size=(5, 5))),     #120x1x1
+    #   ('relu5', nn.ReLU())
+    # ]))
     self.convnet = nn.Sequential(OrderedDict([
-      ('c1', nn.Conv2d(3, 6, kernel_size=(5, 5))),        #32x32 -> 28x28x6  ->156
-      ('relu1', nn.ReLU()),                               #32x32 -> 28x28x6
-      ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #28x28x6 -> 14x14x6 -> 78
-      ('c3', nn.Conv2d(6, 16, kernel_size=(5, 5))),       #14x14x6 -> 10x110x16 -> 74
+      ('c1', nn.Conv2d(3, 6, kernel_size=(5, 5))),        #124 “(n*m*l+1)*k===parameters ==>(5x5x3+1)x6”.
+      ('relu1', nn.ReLU()),                               #
+      ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #62
+      # ('p1',PrintLayer()),
+
+      ('c3', nn.Conv2d(6, 10, kernel_size=(7, 7))),       #56
       ('relu3', nn.ReLU()),
-      ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #16x5x5  -> 37
-      ('c5', nn.Conv2d(16, 120, kernel_size=(5, 5))),     #120x1x1
-      ('relu5', nn.ReLU())
+      ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #28
+      # ('p2',PrintLayer()),
+
+      ('c4', nn.Conv2d(10, 16, kernel_size=(5, 5))),       #24
+      ('relu4', nn.ReLU()),
+      ('s5', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #12
+      # ('p3',PrintLayer()),
+
+      ('c5', nn.Conv2d(16, 20, kernel_size=(5, 5))),       #8
+      ('relu5', nn.ReLU()),
+      # ('p7',PrintLayer()),
+
+      ('s6', nn.MaxPool2d(kernel_size=(2, 2), stride=2)), #4
+      # ('p4',PrintLayer()),
+
+
+
+      ('c7', nn.Conv2d(20, 120, kernel_size=(4, 4))),       #1x1x120
+      # ('p6',PrintLayer()),
+
     ]))
+
 
     self.fc = nn.Sequential(OrderedDict([
       ('f6', nn.Linear(120, 84)),

@@ -10,19 +10,19 @@ import json
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
+from multiprocessing import Process
 
 from waitress import serve
 from collections import namedtuple
 import random
 from imagenette import Imagenette
 import logging
-import threading
 import time
 import torchvision.transforms as transforms
 import uuid
 import string
 from memory_profiler import profile
-threads = []
+training_process = None
 
 def random_text_generator():
   x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
@@ -41,6 +41,7 @@ logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
+
 @app.route("/save_backgroundinfo", methods=['GET','POST'])
 def save_background_info():
   content = request.get_data()
@@ -76,7 +77,7 @@ def get_user_results():
 @app.route("/run_model", methods=['GET','POST'])
 @profile
 def startTheModel():
-  logger.debug(threading.active_count())
+  global training_process
   content = request.get_data()
   my_json = content.decode('utf8').replace("'", '"')
   data_dict = json.loads(my_json,cls=Decoder)
@@ -90,17 +91,38 @@ def startTheModel():
 
   logger.addHandler(file_handler)
 
-  threading.Thread(target=main, args=(data_dict,logger), name=data_dict['user_id']).start()
-  return '{status: "Success"}'
+  if training_process is None:
+    training_process = Process(target=main, args=(data_dict,logger), name=data_dict['user_id'])
+    training_process.start()
 
+  #threading.Thread(target=main, args=(data_dict,logger), name=data_dict['user_id']).start()
+  return json.dumps({'status': 'Success'})
 
 @app.route("/get_status", methods=['GET'])
 def get_execution_status():
+  global training_process
   data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
-  for thread in threading.enumerate():
-    if thread.getName()==data_dict['user_id']:
-      return '{status: "Processing"}'
-  return '{status: "Finished"}'
+  logger.debug("data is here:{}".format(data_dict))
+  if training_process is not None and training_process.is_alive():
+    logger.debug(json.dumps({'status': 0}))
+    return json.dumps({'status': 0}) #ongiong
+  logger.debug(json.dumps({'status': 1}))
+  return json.dumps({'status': 1}) #finished
+
+
+@app.route("/cancel_job", methods=['GET'])
+def cancel_model_training():
+  global training_process
+  data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
+  if training_process is not None:
+    training_process.terminate()
+    training_process.join()
+    time.sleep(2)
+  if not training_process.is_alive():
+    logger.debug(json.dumps({'status': 1}))
+    return json.dumps(json.dumps({'status': 1})) #means still running
+  logger.debug(training_process)
+  return json.dumps(json.dumps({'status': 0})) #means killed
 
 
 def main(params,logger):
@@ -135,6 +157,8 @@ def main(params,logger):
       logger.info(json.dumps(params)+" "+str(container.precision)+" "+str(float(total_time)))
   else:
     logger.critical("precision is None.")
+
+
 
 
 def set_defaults(params):
@@ -189,8 +213,10 @@ def set_values(params):
 
 
 if __name__ == '__main__':
-  serve(app,host='0.0.0.0', port=5001)
+  # serve(app,host='0.0.0.0', port=5001)
 
+  params = {"epochs": {"value": 10.0, "comment": ""}, "batchSize": {"value": 64.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "ada_delta", "comment": ""}, "learningRate": {"value": .00003, "comment": ""}, "epsilon": {"value": 1e-06, "comment": ""}, "weightDecay": {"value": 1, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0, "comment": ""}, "alpha": {"value": 0.75, "comment": ""}, "lambda":{"value": 0.0001, "comment": ""}, "momentum": {"value": 0, "comment": ""}, "user_id": "F88BC8"}
+  main(params,logger)
 
   # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
   # # main(main_json)

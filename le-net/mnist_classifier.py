@@ -14,9 +14,13 @@ import sys
 import logging
 import math
 from imagenette import Imagenette
-logger = logging.basicConfig(level=logging.DEBUG,
+from torchsummary import summary
+
+logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
+# logging = logging.getLogger('thread-%s' % random_name)
+
 class Black_Magic():
   loss_switcher = {
     Constants.CROSS_ENTROPY : cross_entropy,
@@ -48,8 +52,10 @@ class Black_Magic():
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     self.use_cuda = torch.cuda.is_available()
     self.params = params
-    logger.debug(self.use_cuda)
+    #logging.debug(self.use_cuda)
     self.model = LeNet5()
+    logging.debug(summary(self.model, (3, 128, 128)))
+
     self.viz = visdom.Visdom()
     self.push_to_viz = True
     if self.use_cuda:
@@ -64,13 +70,13 @@ class Black_Magic():
   def read_data_imagenette(self):
     data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
-                           transforms.Resize((32, 32)),
+                           transforms.Resize((128, 128)),
                            transforms.ToTensor()]))
 
     data_test = Imagenette('./data/imagenette',
                       train=False,
                       transform=transforms.Compose([
-                          transforms.Resize((32, 32)),
+                          transforms.Resize((128, 128)),
                           transforms.ToTensor()]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
@@ -120,14 +126,14 @@ class Black_Magic():
         if math.isnan(loss):
           return False
         if i % 10 == 0:
-          logger.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
+          logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
 
           # Update Visualization
         if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
           self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(batch_list),
                                    win=self.cur_batch_win, name='current_batch_loss',
-                                   update=(None if self.cur_batch_win is None else 'append'),
+                                   update=(None if self.cur_batch_win is None else 'replace'),
                                    opts=self.cur_batch_win_opts)
 
         loss.backward()
@@ -172,7 +178,7 @@ class Black_Magic():
 
     avg_loss /= dataset_test_size
     self.precision = float(total_correct) / dataset_test_size
-    logger.debug('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), self.precision))
+    logging.debug('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), self.precision))
 
 
 
