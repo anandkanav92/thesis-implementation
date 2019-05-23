@@ -13,6 +13,7 @@ import visdom
 import sys
 import logging
 import math
+import pdb
 from imagenette import Imagenette
 from models.squeeze_me import squeezenet1_1
 from torchsummary import summary
@@ -54,9 +55,9 @@ class Black_Magic():
     self.use_cuda = torch.cuda.is_available()
     self.params = params
     #logging.debug(self.use_cuda)
-    # self.model = LeNet5()
-    self.model = squeezenet1_1(pretrained=False,num_classes=10)
-    logging.debug(summary(self.model, (3, 128, 128)))
+    self.model = LeNet5()
+    # self.model = squeezenet1_1(pretrained=False,num_classes=10)
+    logging.debug(summary(self.model, (3, 32, 32)))
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
@@ -72,13 +73,13 @@ class Black_Magic():
   def read_data_imagenette(self):
     data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
-                           transforms.Resize((224, 224)),
+                           transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
 
     data_test = Imagenette('./data/imagenette',
                       train=False,
                       transform=transforms.Compose([
-                          transforms.Resize((224, 224)),
+                          transforms.Resize((32, 32)),
                           transforms.ToTensor()]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
@@ -121,11 +122,16 @@ class Black_Magic():
         if self.use_cuda:
           images = images.cuda()
           labels = labels.cuda()
+        #remove output
         output = self.model(images)
         loss = self.criterion(output, labels)
         loss_list.append(loss.detach().cpu().item())
+        logging.debug("images labels:{}".format(labels))
+        logging.debug(loss)
+        logging.debug(output)
         batch_list.append(i+1)
         if math.isnan(loss):
+          logging.error("NAN found!")
           return False
         if i % 10 == 0:
           logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
@@ -140,6 +146,8 @@ class Black_Magic():
 
         loss.backward()
         optimizer.step()
+      pdb.set_trace()
+
 
 
 
@@ -166,16 +174,18 @@ class Black_Magic():
 
       if self.use_cuda:
         images = images.cuda()
-        labels = labels.cuda()
         if labels_l1 is not None:
           labels_l1 = labels_l1.cuda()
+        else:
+          labels = labels.cuda()
+
       output = self.model(images)
 
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
         avg_loss += self.criterion(output, labels_l1).sum()
       else:
         avg_loss += self.criterion(output, labels).sum()
-      logging.debug(pred)
+      logging.debug(output)
       pred = output.detach().max(1)[1]
       logging.debug(pred)
       logging.debug(labels)

@@ -103,9 +103,10 @@ def get_execution_status():
   global training_process
   data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
   logger.debug("data is here:{}".format(data_dict))
-  if training_process is not None and training_process.is_alive():
-    logger.debug(json.dumps({'status': 0}))
-    return json.dumps({'status': 0}) #ongiong
+  if training_process is not None:
+    if training_process.is_alive():
+      logger.debug(json.dumps({'status': 0}))
+      return json.dumps({'status': 0}) #ongiong
   logger.debug(json.dumps({'status': 1}))
   return json.dumps({'status': 1}) #finished
 
@@ -118,9 +119,9 @@ def cancel_model_training():
     training_process.terminate()
     training_process.join()
     time.sleep(2)
-  if not training_process.is_alive():
-    logger.debug(json.dumps({'status': 1}))
-    return json.dumps(json.dumps({'status': 1})) #means still running
+    if not training_process.is_alive():
+      logger.debug(json.dumps({'status': 1}))
+      return json.dumps(json.dumps({'status': 1})) #means still running
   logger.debug(training_process)
   return json.dumps(json.dumps({'status': 0})) #means killed
 
@@ -215,7 +216,7 @@ def set_values(params):
 if __name__ == '__main__':
   # serve(app,host='0.0.0.0', port=5001)
 
-  params = {"epochs": {"value": 10.0, "comment": ""}, "batchSize": {"value": 64.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "ada_delta", "comment": ""}, "learningRate": {"value": .00003, "comment": ""}, "epsilon": {"value": 1e-06, "comment": ""}, "weightDecay": {"value": 1, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0, "comment": ""}, "alpha": {"value": 0.75, "comment": ""}, "lambda":{"value": 0.0001, "comment": ""}, "momentum": {"value": 0, "comment": ""}, "user_id": "F88BC8"}
+  params = {"epochs": {"value": 5.0, "comment": ""}, "batchSize": {"value": 25.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "rms_prop", "comment": ""}, "learningRate": {"value": .00003, "comment": ""}, "epsilon": {"value": 1e-06, "comment": ""}, "weightDecay": {"value": 1, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0, "comment": ""}, "alpha": {"value": 0.99, "comment": ""}, "lambda":{"value": 0.0001, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
   main(params,logger)
 
   # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
