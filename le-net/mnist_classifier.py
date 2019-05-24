@@ -51,6 +51,9 @@ class Black_Magic():
   precision = None
 
   def __init__(self,params):
+
+    torch.cuda.manual_seed_all(10)
+    torch.manual_seed(10)
     self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     self.use_cuda = torch.cuda.is_available()
     self.params = params
@@ -115,8 +118,10 @@ class Black_Magic():
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
     loss = None
+    loss_list, epoch_list = [], []
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
-      loss_list, batch_list = [], []
+      # loss_list, batch_list = [], []
+      loss = None
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
 
@@ -131,11 +136,10 @@ class Black_Magic():
         #remove output
         output = self.model(images)
         loss = self.criterion(output, labels)
-        loss_list.append(loss.detach().cpu().item())
+        # loss_list.append(loss.detach().cpu().item())
         # logging.debug("images labels:{}".format(labels))
         # logging.debug(loss)
         logging.debug(output)
-        batch_list.append(i+1)
         if math.isnan(loss):
           logging.error("NAN found!")
           return False
@@ -143,23 +147,18 @@ class Black_Magic():
           logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
 
           # Update Visualization
-        if self.viz.check_connection() and self.push_to_viz:
-            #env="RANDOM12345"
-          self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(batch_list),
-                                   win=self.cur_batch_win, name='current_batch_loss',
-                                   update=(None if self.cur_batch_win is None else 'replace'),
-                                   opts=self.cur_batch_win_opts)
+
 
         loss.backward()
-        if epoch == self.params[Constants.EPOCH][Constants.VALUE]-1 and i%100==0:
-          for element in self.model.convnet:
-            if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
-              logging.debug("CONV GRADS: {}".format(element.weight))
-          # for key,value in self.model.convnet:
-          #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
-          for element in self.model.fc:
-            if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
-              logging.debug("FC GRADS: {}".format(element.weight))
+        # if epoch == self.params[Constants.EPOCH][Constants.VALUE]-1 and i%100==0:
+        #   for element in self.model.convnet:
+        #     if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
+        #       logging.debug("CONV GRADS: {}".format(element.weight))
+        #   # for key,value in self.model.convnet:
+        #   #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
+        #   for element in self.model.fc:
+        #     if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
+        #       logging.debug("FC GRADS: {}".format(element.weight))
 
         # logging.debug("FC GRADS:".format(self.model.fc.grad))
         # if i%100==0:
@@ -168,6 +167,19 @@ class Black_Magic():
 
         # print(model[0].weight.grad)
         optimizer.step()
+
+
+      loss_list.append(loss.detach().cpu().item())
+      epoch_list.append(epoch+1)
+      print(loss_list)
+      print(len(epoch_list))
+
+      if self.viz.check_connection() and self.push_to_viz:
+            #env="RANDOM12345"
+        self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(epoch_list),
+                                   win=self.cur_batch_win, name='current_batch_loss',
+                                   update=(None if self.cur_batch_win is None else 'replace'),
+                                   opts=self.cur_batch_win_opts)
 
 
 
@@ -182,14 +194,14 @@ class Black_Magic():
     return optimizer_function(self.model, self.params)
 
   def predict(self,data_test_loader):
-    for element in self.model.convnet:
-      if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
-        logging.debug("CONV GRADS: {}".format(element.weight))
-    # for key,value in self.model.convnet:
-      #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
-    for element in self.model.fc:
-      if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
-        logging.debug("FC GRADS: {}".format(element.weight))
+    # for element in self.model.convnet:
+    #   if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
+    #     logging.debug("CONV GRADS: {}".format(element.weight))
+    # # for key,value in self.model.convnet:
+    #   #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
+    # for element in self.model.fc:
+    #   if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
+    #     logging.debug("FC GRADS: {}".format(element.weight))
     self.model.eval()
     total_correct = 0
     avg_loss = 0.0

@@ -138,7 +138,7 @@ class LeNet5(nn.Module):
     self.fc = nn.Sequential(OrderedDict([
       ('f6', nn.Linear(120, 84)),
       ('relu6', nn.ReLU()),
-      ('f7', nn.Linear(84, 3)),
+      ('f7', nn.Linear(84, 4)),
       ('sig7', nn.LogSoftmax(dim=-1)) #put it in the main function as variable parameter
     ]))
 
