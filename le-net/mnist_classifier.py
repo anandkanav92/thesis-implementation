@@ -57,7 +57,7 @@ class Black_Magic():
     #logging.debug(self.use_cuda)
     self.model = LeNet5()
     # self.model = squeezenet1_1(pretrained=False,num_classes=10)
-    logging.debug(summary(self.model, (3, 32, 32)))
+    # logging.debug(summary(self.model, (1, 32, 32)))
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
@@ -74,16 +74,22 @@ class Black_Magic():
     data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
-                           transforms.ToTensor()]))
+                           transforms.ToTensor(),
+                           transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                           ]))
 
     data_test = Imagenette('./data/imagenette',
                       train=False,
                       transform=transforms.Compose([
                           transforms.Resize((32, 32)),
-                          transforms.ToTensor()]))
+                          transforms.ToTensor(),
+                          transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader
+  def read_fastai_imagenette(self):
+    dataset = ImageList.from_folder(path).split_by_folder(valid='val').label_from_folder().transform(([flip_lr(p=0.5)], []), size=32).databunch(bs=self.params[Constants.BATCH_SIZE][Constants.VALUE], num_workers=8).presize(32, scale=(0.35,1)).normalize(imagenet_stats)
+    print(dataset)
 
   def read_data_mnist(self):
     data_train = MNIST('./data/mnist',
@@ -91,7 +97,6 @@ class Black_Magic():
                        transform=transforms.Compose([
                            transforms.Resize((32, 32)),
                            transforms.ToTensor()]))
-
     data_test = MNIST('./data/mnist',
                       train=False,
                       download=True,
@@ -106,6 +111,7 @@ class Black_Magic():
   def train(self,data_train_loader):
     #data_train_loader,data_test_loader = _read_data()
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
+    print(self.criterion)
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
     loss = None
@@ -126,8 +132,8 @@ class Black_Magic():
         output = self.model(images)
         loss = self.criterion(output, labels)
         loss_list.append(loss.detach().cpu().item())
-        logging.debug("images labels:{}".format(labels))
-        logging.debug(loss)
+        # logging.debug("images labels:{}".format(labels))
+        # logging.debug(loss)
         logging.debug(output)
         batch_list.append(i+1)
         if math.isnan(loss):
@@ -145,8 +151,23 @@ class Black_Magic():
                                    opts=self.cur_batch_win_opts)
 
         loss.backward()
+        if epoch == self.params[Constants.EPOCH][Constants.VALUE]-1 and i%100==0:
+          for element in self.model.convnet:
+            if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
+              logging.debug("CONV GRADS: {}".format(element.weight))
+          # for key,value in self.model.convnet:
+          #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
+          for element in self.model.fc:
+            if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
+              logging.debug("FC GRADS: {}".format(element.weight))
+
+        # logging.debug("FC GRADS:".format(self.model.fc.grad))
+        # if i%100==0:
+          # pdb.set_trace()
+
+
+        # print(model[0].weight.grad)
         optimizer.step()
-      pdb.set_trace()
 
 
 
@@ -161,6 +182,14 @@ class Black_Magic():
     return optimizer_function(self.model, self.params)
 
   def predict(self,data_test_loader):
+    for element in self.model.convnet:
+      if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
+        logging.debug("CONV GRADS: {}".format(element.weight))
+    # for key,value in self.model.convnet:
+      #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
+    for element in self.model.fc:
+      if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
+        logging.debug("FC GRADS: {}".format(element.weight))
     self.model.eval()
     total_correct = 0
     avg_loss = 0.0
@@ -185,10 +214,10 @@ class Black_Magic():
         avg_loss += self.criterion(output, labels_l1).sum()
       else:
         avg_loss += self.criterion(output, labels).sum()
-      logging.debug(output)
+      # logging.debug(output)
       pred = output.detach().max(1)[1]
-      logging.debug(pred)
-      logging.debug(labels)
+      # logging.debug(pred)
+      # logging.debug(labels)
       #what about l1 loss
       total_correct += pred.eq(labels.view_as(pred)).sum()
 

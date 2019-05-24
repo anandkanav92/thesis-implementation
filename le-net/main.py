@@ -139,6 +139,7 @@ def main(params,logger):
   #read data
   # data_train_loader,data_test_loader = container.read_data_mnist()
   data_train_loader,data_test_loader = container.read_data_imagenette()
+  # container.read_fastai_imagenette()
   #train the model
   if container.train(data_train_loader):
     #test the model
@@ -216,10 +217,10 @@ def set_values(params):
 if __name__ == '__main__':
   # serve(app,host='0.0.0.0', port=5001)
 
-  params = {"epochs": {"value": 5.0, "comment": ""}, "batchSize": {"value": 25.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "rms_prop", "comment": ""}, "learningRate": {"value": .00003, "comment": ""}, "epsilon": {"value": 1e-06, "comment": ""}, "weightDecay": {"value": 1, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0, "comment": ""}, "alpha": {"value": 0.99, "comment": ""}, "lambda":{"value": 0.0001, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
+  params = {"epochs": {"value": 30, "comment": ""}, "batchSize": {"value": 1.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": .001, "comment": ""}, "epsilon": {"value": 1e-08, "comment": ""}, "weightDecay": {"value": 0, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.0001, "comment": ""}, "alpha": {"value": 0.0001, "comment": ""}, "lambda":{"value": 0.0001, "comment": ""}, "momentum": {"value": 0.0001, "comment": ""}, "user_id": "F88BC8"}
   main(params,logger)
 
-  # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
+ # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
   # # main(main_json)
 
   # for i in range(0,50):
