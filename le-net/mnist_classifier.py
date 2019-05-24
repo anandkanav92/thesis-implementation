@@ -171,8 +171,7 @@ class Black_Magic():
 
       loss_list.append(loss.detach().cpu().item())
       epoch_list.append(epoch+1)
-      print(loss_list)
-      print(len(epoch_list))
+      # logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
 
       if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
