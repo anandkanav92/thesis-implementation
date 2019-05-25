@@ -42,6 +42,7 @@ def connect(logger):
     return cur
   except (Exception, psycopg2.DatabaseError) as error:
     logger.error("Connection failed")
+    logger.error(error)
   # finally:
   #   if conn is not None:
   #     conn.close()
