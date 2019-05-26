@@ -58,9 +58,9 @@ class Black_Magic():
     self.use_cuda = torch.cuda.is_available()
     self.params = params
     #logging.debug(self.use_cuda)
-    self.model = LeNet5()
-    # self.model = squeezenet1_1(pretrained=False,num_classes=10)
-    # logging.debug(summary(self.model, (1, 32, 32)))
+    # self.model = LeNet5()
+    self.model = squeezenet1_1(pretrained=False,num_classes=10)
+    # logging.debug(summary(self.model, (3, 128, 128)))
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
@@ -76,7 +76,7 @@ class Black_Magic():
   def read_data_imagenette(self):
     data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
-                           transforms.Resize((32, 32)),
+                           transforms.Resize((128, 128)),
                            transforms.ToTensor(),
                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                            ]))
@@ -84,7 +84,7 @@ class Black_Magic():
     data_test = Imagenette('./data/imagenette',
                       train=False,
                       transform=transforms.Compose([
-                          transforms.Resize((32, 32)),
+                          transforms.Resize((128, 128)),
                           transforms.ToTensor(),
                           transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
@@ -216,6 +216,7 @@ class Black_Magic():
         images = images.cuda()
         if labels_l1 is not None:
           labels_l1 = labels_l1.cuda()
+          labels = labels.cuda()
         else:
           labels = labels.cuda()
 

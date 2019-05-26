@@ -8,14 +8,7 @@ model_urls = {
     'squeezenet1_0': 'https://download.pytorch.org/models/squeezenet1_0-a815701f.pth',
     'squeezenet1_1': 'https://download.pytorch.org/models/squeezenet1_1-f364aa15.pth',
 }
-class PrintLayer(nn.Module):
-    def __init__(self):
-        super(PrintLayer, self).__init__()
 
-    def forward(self, x):
-        # Do your print / debug stuff here
-        print(x.size())
-        return x
 
 class Fire(nn.Module):
 
@@ -62,38 +55,20 @@ class SqueezeNet(nn.Module):
                 Fire(512, 64, 256, 256),
             )
         elif version == '1_1':
-
-
-
             self.features = nn.Sequential(
                 nn.Conv2d(3, 64, kernel_size=3, stride=2),
-                PrintLayer(),            #torch.Size([2, 64, 63, 63])
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                PrintLayer(), #torch.Size([2, 64, 31, 31])
                 Fire(64, 16, 64, 64),
-                PrintLayer(),            #torch.Size([2, 128, 31, 31])
-                # Fire(128, 16, 64, 64),
-                # PrintLayer(),            #torch.Size([2, 128, 31, 31])
+                Fire(128, 16, 64, 64),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                PrintLayer(),            #torch.Size([2, 128, 15, 15])
-
                 Fire(128, 32, 128, 128),
-                PrintLayer(),            #torch.Size([2, 256, 15, 15])
-                # Fire(256, 32, 128, 128),
-                PrintLayer(),            #torch.Size([2, 256, 15, 15])
-
+                Fire(256, 32, 128, 128),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                PrintLayer(),               #torch.Size([2, 256, 7, 7])
-
                 Fire(256, 48, 192, 192),
-                PrintLayer(),   #torch.Size([2, 384, 7, 7])
-                # Fire(384, 48, 192, 192),
-                PrintLayer(), #torch.Size([2, 384, 7, 7])
+                Fire(384, 48, 192, 192),
                 Fire(384, 64, 256, 256),
-                # PrintLayer(),
-                # Fire(512, 64, 256, 256),
-                PrintLayer(),#torch.Size([2, 512, 7, 7])
+                Fire(512, 64, 256, 256),
             )
         else:
             # FIXME: Is this needed? SqueezeNet should only be called from the
@@ -130,7 +105,6 @@ def _squeezenet(version, pretrained, progress, **kwargs):
     model = SqueezeNet(version, **kwargs)
     if pretrained:
         arch = 'squeezenet' + version
-
     return model
 
 
