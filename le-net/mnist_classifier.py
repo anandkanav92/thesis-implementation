@@ -114,11 +114,11 @@ class Black_Magic():
   def train(self,data_train_loader):
     #data_train_loader,data_test_loader = _read_data()
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
-    print(self.criterion)
+    data_train_loader,data_test_loader = self.read_data_imagenette()
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
     loss = None
-    loss_list, epoch_list = [], []
+    loss_list, epoch_list, test_list = [], [], []
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
       # loss_list, batch_list = [], []
       loss = None
@@ -139,7 +139,7 @@ class Black_Magic():
         # loss_list.append(loss.detach().cpu().item())
         # logging.debug("images labels:{}".format(labels))
         # logging.debug(loss)
-        logging.debug(output)
+        # logging.debug(output)
         if math.isnan(loss):
           logging.error("NAN found!")
           return False
@@ -168,7 +168,8 @@ class Black_Magic():
         # print(model[0].weight.grad)
         optimizer.step()
 
-
+      self.predict(data_test_loader)
+      test_list.append(self.precision)
       loss_list.append(loss.detach().cpu().item())
       epoch_list.append(epoch+1)
       # logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
@@ -180,9 +181,8 @@ class Black_Magic():
                                    update=(None if self.cur_batch_win is None else 'replace'),
                                    opts=self.cur_batch_win_opts)
 
-
-
-
+    for index in range(0,len(loss_list)):
+      logging.info("Epoch {}, Training loss{}, Test loss".format(index,loss_list[index],test_list[index]))
     return True
   def _get_loss_function(self,loss_function_name):
     loss_function = self.loss_switcher.get(loss_function_name, lambda: "Unavailable loss function")
