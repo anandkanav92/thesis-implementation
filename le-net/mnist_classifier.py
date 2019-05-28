@@ -21,7 +21,6 @@ import torchvision.models as tmodel
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
-# logging = logging.getLogger('thread-%s' % random_name)
 
 class Black_Magic():
   loss_switcher = {
@@ -39,16 +38,26 @@ class Black_Magic():
     Constants.SGD : sgd,
     Constants.ADA_GRAD : ada_grad
   }
-  cur_batch_win = None
-  cur_batch_win_opts = {
-      'title': 'Epoch Loss Trace',
+  epoch_batch_win = None
+  epoch_batch_win_opts = {
+      'title': 'Batch loss trace for a single Epoch',
       'xlabel': 'Batch Number',
+      'ylabel': 'Loss',
+      'width': 1200,
+      'height': 600,
+  }
+
+  epoch_win = None
+  epoch_win_opts = {
+      'title': 'Epoch loss trace',
+      'xlabel': 'Epoch Number',
       'ylabel': 'Loss',
       'width': 1200,
       'height': 600,
   }
   push_to_viz = False
   precision = None
+
 
   def __init__(self,params):
 
@@ -70,8 +79,10 @@ class Black_Magic():
 
     self._print_all_params(params)
 
+
   def _print_all_params(self,params):
     print(params)
+
 
   def read_data_imagenette(self):
     data_train = Imagenette('./data/imagenette',
@@ -90,6 +101,8 @@ class Black_Magic():
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader
+
+
   def read_fastai_imagenette(self):
     dataset = ImageList.from_folder(path).split_by_folder(valid='val').label_from_folder().transform(([flip_lr(p=0.5)], []), size=32).databunch(bs=self.params[Constants.BATCH_SIZE][Constants.VALUE], num_workers=8).presize(32, scale=(0.35,1)).normalize(imagenet_stats)
     print(dataset)
@@ -112,15 +125,13 @@ class Black_Magic():
 
 
   def train(self,data_train_loader):
-    #data_train_loader,data_test_loader = _read_data()
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
-    data_train_loader,data_test_loader = self.read_data_imagenette()
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
     loss = None
-    loss_list, epoch_list, test_list = [], [], []
+    epoch_loss_list, batch_loss_list, batch_list, epoch_list, test_list = [], [], [], [], []
     for epoch in range(0,int(self.params[Constants.EPOCH][Constants.VALUE])):
-      # loss_list, batch_list = [], []
+      batch_loss_list, batch_list = [], []
       loss = None
       for i, (images, labels) in enumerate(data_train_loader):
         optimizer.zero_grad()
@@ -133,56 +144,43 @@ class Black_Magic():
         if self.use_cuda:
           images = images.cuda()
           labels = labels.cuda()
-        #remove output
+
         output = self.model(images)
         loss = self.criterion(output, labels)
-        # loss_list.append(loss.detach().cpu().item())
-        # logging.debug("images labels:{}".format(labels))
-        # logging.debug(loss)
-        # logging.debug(output)
+        batch_loss_list.append(loss.detach().cpu().item())
+        batch_list.append(i+1)
+
         if math.isnan(loss):
           logging.error("NAN found!")
           return False
         if i % 10 == 0:
           logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
-
           # Update Visualization
+          if self.viz.check_connection() and self.push_to_viz:
+            epoch_batch_win_opts['title'] = 'Batch loss trace for a Epoch '+epoch
+            self.epoch_batch_win = self.viz.line(torch.Tensor(batch_loss_list), torch.Tensor(batch_list),
+                                   win=self.epoch_batch_win, name='current_batch_loss',
+                                   update=(None if self.epoch_batch_win is None else 'replace'),
+                                   opts=self.epoch_batch_win_opts)
 
 
         loss.backward()
-        # if epoch == self.params[Constants.EPOCH][Constants.VALUE]-1 and i%100==0:
-        #   for element in self.model.convnet:
-        #     if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) :
-        #       logging.debug("CONV GRADS: {}".format(element.weight))
-        #   # for key,value in self.model.convnet:
-        #   #   logging.debug("FC GRADS:".format(self.model.fc['key'].weight.grad))
-        #   for element in self.model.fc:
-        #     if (type(element)is not type(nn.ReLU())) and (type(element)is not type(nn.MaxPool2d(kernel_size=(2, 2), stride=2))) and (type(element)is not type(nn.LogSoftmax(dim=-1))) :
-        #       logging.debug("FC GRADS: {}".format(element.weight))
-
-        # logging.debug("FC GRADS:".format(self.model.fc.grad))
-        # if i%100==0:
-          # pdb.set_trace()
-
-
-        # print(model[0].weight.grad)
         optimizer.step()
 
-      self.predict(data_test_loader)
-      test_list.append(self.precision)
-      loss_list.append(loss.detach().cpu().item())
+      epoch_loss_list.append(loss.detach().cpu().item())
       epoch_list.append(epoch+1)
       # logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
 
       if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
-        self.cur_batch_win = self.viz.line(torch.Tensor(loss_list), torch.Tensor(epoch_list),
-                                   win=self.cur_batch_win, name='current_batch_loss',
-                                   update=(None if self.cur_batch_win is None else 'replace'),
-                                   opts=self.cur_batch_win_opts)
+        self.epoch_win = self.viz.line(torch.Tensor(epoch_loss_list), torch.Tensor(epoch_list),
+                                   win=self.epoch_win, name='current_batch_loss',
+                                   update=(None if self.epoch_win is None else 'append'),
+                                   opts=self.epoch_win_opts)
 
-    for index in range(0,len(loss_list)):
-      logging.info("Epoch {}, Training loss{}, Test loss".format(index,loss_list[index],test_list[index]))
+    #clear enviroment
+    if self.viz.check_connection() and self.push_to_viz:
+      self.viz.delete_env("current_batch_loss")
     return True
   def _get_loss_function(self,loss_function_name):
     loss_function = self.loss_switcher.get(loss_function_name, lambda: "Unavailable loss function")
@@ -226,17 +224,14 @@ class Black_Magic():
         avg_loss += self.criterion(output, labels_l1).sum()
       else:
         avg_loss += self.criterion(output, labels).sum()
-      # logging.debug(output)
+
       pred = output.detach().max(1)[1]
-      # logging.debug(pred)
-      # logging.debug(labels)
-      #what about l1 loss
-      total_correct += pred.eq(labels.view_as(pred)).sum()
+      total_correct += pred.eq(labels.view_as(pred)).sum() #labels are anyways same for l1 and other loss.
 
     avg_loss /= dataset_test_size
     self.precision = float(total_correct) / dataset_test_size
     logging.debug('Test Avg. Loss: %f, Accuracy: %f' % (avg_loss.detach().cpu().item(), self.precision))
-
+    return self.precision
 
 
   def get_labels_for_L1(self,batch_size,labels):
