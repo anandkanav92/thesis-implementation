@@ -125,6 +125,10 @@ class Black_Magic():
 
 
   def train(self,data_train_loader):
+    #clear enviroment
+    if self.viz.check_connection() and self.push_to_viz:
+      logging.debug("deleting visdom enviroment")
+      self.viz.delete_env("main")
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
@@ -178,10 +182,7 @@ class Black_Magic():
                                    update=(None if self.epoch_win is None else 'append'),
                                    opts=self.epoch_win_opts)
 
-    #clear enviroment
-    if self.viz.check_connection() and self.push_to_viz:
-      logging.debug("deleting visdom enviroment")
-      self.viz.delete_env("main")
+
     return True
   def _get_loss_function(self,loss_function_name):
     loss_function = self.loss_switcher.get(loss_function_name, lambda: "Unavailable loss function")
