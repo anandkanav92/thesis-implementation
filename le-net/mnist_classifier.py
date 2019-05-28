@@ -157,7 +157,7 @@ class Black_Magic():
           logging.debug('Train - Epoch %d, Batch: %d, Loss: %f' % (epoch, i, loss.detach().cpu().item()))
           # Update Visualization
           if self.viz.check_connection() and self.push_to_viz:
-            epoch_batch_win_opts['title'] = 'Batch loss trace for a Epoch '+epoch
+            # self.epoch_batch_win_opts['title'] = 'Batch loss trace for a Epoch '+str(epoch)
             self.epoch_batch_win = self.viz.line(torch.Tensor(batch_loss_list), torch.Tensor(batch_list),
                                    win=self.epoch_batch_win, name='current_batch_loss',
                                    update=(None if self.epoch_batch_win is None else 'replace'),
@@ -174,13 +174,14 @@ class Black_Magic():
       if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
         self.epoch_win = self.viz.line(torch.Tensor(epoch_loss_list), torch.Tensor(epoch_list),
-                                   win=self.epoch_win, name='current_batch_loss',
+                                   win=self.epoch_win, name='current_epoch_loss',
                                    update=(None if self.epoch_win is None else 'append'),
                                    opts=self.epoch_win_opts)
 
     #clear enviroment
     if self.viz.check_connection() and self.push_to_viz:
-      self.viz.delete_env("current_batch_loss")
+      logging.debug("deleting visdom enviroment")
+      self.viz.delete_env("main")
     return True
   def _get_loss_function(self,loss_function_name):
     loss_function = self.loss_switcher.get(loss_function_name, lambda: "Unavailable loss function")
