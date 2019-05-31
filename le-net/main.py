@@ -21,7 +21,6 @@ import time
 import torchvision.transforms as transforms
 import uuid
 import string
-from memory_profiler import profile
 training_process = None
 
 def random_text_generator():
