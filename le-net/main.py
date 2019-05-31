@@ -25,7 +25,7 @@ from memory_profiler import profile
 training_process = None
 
 def random_text_generator():
-  x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+  x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
   return x.join(str(time.time()))
 
 random_name = random_text_generator()
@@ -75,7 +75,6 @@ def get_user_results():
 
 
 @app.route("/run_model", methods=['GET','POST'])
-@profile
 def startTheModel():
   global training_process
   content = request.get_data()
@@ -91,12 +90,34 @@ def startTheModel():
 
   logger.addHandler(file_handler)
 
-  if training_process is None:
-    training_process = Process(target=main, args=(data_dict,logger), name=data_dict['user_id'])
+  logger.debug("data_dict['finalSubmission']['value'] {} and training_process {}".format(type(data_dict['finalSubmission']['value']),training_process))
+  if data_dict['finalSubmission']['value'] == True and training_process is None:
+    cursor = connect(logger)
+    if cursor is not None:
+      if insert_user_results_final(cursor,json.dumps(data_dict),logger,data_dict['user_id']):
+        logger.info("Successfully inserted final record for {}".format(data_dict['user_id']))
+        return json.dumps({'status': 0}) #final record inserted
+
+      else:
+        logger.info("Insertion failed for final record {}".format(data_dict['user_id']))
+        return json.dumps({'status': 1}) #final record insertion failed
+
+
+
+  if training_process is None or (not training_process.is_alive()):
+    data_dict = set_defaults(data_dict)
+    cursor = connect(logger)
+    #to handle cases where the training is killed intermediately
+    row_id = insert_user_results(cursor,json.dumps(data_dict),-2,-1,logger,data_dict['user_id'])
+    if row_id is not None:
+      data_dict['row_id'] = row_id
+    else:
+      logger.debug("Insert failed at the start!")
+    training_process = Process(target=main, args=(data_dict,logger), name=data_dict['user_id']+random_text_generator())
     training_process.start()
 
   #threading.Thread(target=main, args=(data_dict,logger), name=data_dict['user_id']).start()
-  return json.dumps({'status': 'Success'})
+  return json.dumps({'status': 2}) #depeicts training has started
 
 @app.route("/get_status", methods=['GET'])
 def get_execution_status():
@@ -121,9 +142,10 @@ def cancel_model_training():
     time.sleep(2)
     if not training_process.is_alive():
       logger.debug(json.dumps({'status': 1}))
-      return json.dumps(json.dumps({'status': 1})) #means still running
+      logger.debug(training_process.exitcode)
+      return json.dumps(json.dumps({'status': 1})) #means still killed
   logger.debug(training_process)
-  return json.dumps(json.dumps({'status': 0})) #means killed
+  return json.dumps(json.dumps({'status': 0})) #means running
 
 
 def main(params,logger):
@@ -131,7 +153,7 @@ def main(params,logger):
   start_time = time.time()
 
   #set defaults
-  params = set_defaults(params)
+  # params = set_defaults(params)
 
   container = Black_Magic(params)
   logger.info("recieved parameters: ")
@@ -153,10 +175,11 @@ def main(params,logger):
   cursor = connect(logger)
   if container.precision is not None:
     if cursor is not None:
-      if insert_user_results(cursor,json.dumps(params),container.precision,float(total_time),logger,params['user_id']):
-        logger.info("Successfully inserted.")
+      if params['row_id'] is not None:
+        if update_user_results(cursor,container.precision,float(total_time),logger,params['row_id']):
+          logger.info("Successfully inserted.")
       else:
-        logger.info("Insertion failed.")
+        logger.info("update failed.")
     else:
       logger.info(json.dumps(params)+" "+str(container.precision)+" "+str(float(total_time)))
   else:
@@ -217,10 +240,10 @@ def set_values(params):
 
 
 if __name__ == '__main__':
-  # serve(app,host='0.0.0.0', port=5001)
+  serve(app,host='0.0.0.0', port=5001)
 
-  params = {"epochs": {"value": 3, "comment": ""}, "batchSize": {"value": 300.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": .0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda":{"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
-  main(params,logger)
+  # params = {"epochs": {"value": 2, "comment": ""}, "batchSize": {"value": 1000.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": .0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda":{"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
+  # main(params,logger)
 
  # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
   # # main(main_json)

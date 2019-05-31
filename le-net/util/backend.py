@@ -11,15 +11,42 @@ def insert_user(cursor,name,background_info):
 def insert_user_results(cursor,params,accuracy,time_taken,logger,user_id):
   try:
     logger.debug("Inserting into user_info... {},{},{}".format(user_id,params,accuracy))
-    query = """ INSERT INTO user_results ( params, accuracy,time_taken,user_id) VALUES (%s,%s,%s,%s)"""
+    query = """ INSERT INTO user_results ( params, accuracy,time_taken,user_id) VALUES (%s,%s,%s,%s) RETURNING id"""
     record_to_insert = (params, accuracy,time_taken,user_id)
     cursor.execute(query, record_to_insert)
-    return True
+    id_row = cursor.fetchone()[0]
+    logger.debug("Inserted row here {}".format(id_row))
+    return id_row
     # rows = cursor.fetchall()
     # print(rows)
     # for row in rows:
     #   print(row)
     #cursor.execute("INSERT INTO variance_results (params, accuracy) VALUES (%s, %s) ",(params,accuracy))
+  except Exception as error:
+    logger.error(error)
+    return None
+
+def update_user_results(cursor,accuracy,time_taken,logger,row_id):
+  try:
+    logger.debug("updating user_info... {},{},{}".format(row_id,time_taken,accuracy))
+    query = """ UPDATE user_results
+                SET accuracy = %s, time_taken = %s
+                WHERE id = %s"""
+    record_to_update = (accuracy,time_taken,row_id)
+    cursor.execute(query, record_to_update)
+    logger.debug("Row updates successfully")
+    return True
+  except Exception as error:
+    logger.error(error)
+    return False
+
+def insert_user_results_final(cursor,params,logger,user_id):
+  try:
+    logger.debug("Inserting into user_info... {},{}".format(user_id,params))
+    query = """ INSERT INTO user_final_submissions ( params,user_id) VALUES (%s,%s)"""
+    record_to_insert = (params, user_id)
+    cursor.execute(query, record_to_insert)
+    return True
   except Exception as error:
     logger.error(error)
     return False
