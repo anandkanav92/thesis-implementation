@@ -74,6 +74,7 @@ class Black_Magic():
 
     self.viz = visdom.Visdom()
     self.push_to_viz = True
+    logging.debug("cuda:{}".format( self.use_cuda))
     if self.use_cuda:
       self.model.cuda()
     #True means gpu is available else False
@@ -103,10 +104,6 @@ class Black_Magic():
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader
 
-
-  def read_fastai_imagenette(self):
-    dataset = ImageList.from_folder(path).split_by_folder(valid='val').label_from_folder().transform(([flip_lr(p=0.5)], []), size=32).databunch(bs=self.params[Constants.BATCH_SIZE][Constants.VALUE], num_workers=8).presize(32, scale=(0.35,1)).normalize(imagenet_stats)
-    print(dataset)
 
   def read_data_mnist(self):
     data_train = MNIST('./data/mnist',
