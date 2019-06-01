@@ -21,7 +21,6 @@ import time
 import torchvision.transforms as transforms
 import uuid
 import string
-from memory_profiler import profile
 training_process = None
 
 def random_text_generator():
@@ -240,10 +239,10 @@ def set_values(params):
 
 
 if __name__ == '__main__':
-  # serve(app,host='0.0.0.0', port=5001)
+  serve(app,host='145.94.127.202', port=5001)
 
-  params = {"epochs": {"value": 105, "comment": ""}, "batchSize": {"value": 100.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": 0.0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda": {"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
-  main(params,logger)
+  #params = {"epochs": {"value": 25, "comment": ""}, "batchSize": {"value": 100.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": 0.0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda": {"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
+  #main(params,logger)
 
  # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
   # # main(main_json)
