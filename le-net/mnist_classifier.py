@@ -14,7 +14,6 @@ import sys
 import logging
 import math
 import pdb
-from imagenette import Imagenette
 from models.squeeze_me import squeezenet1_1
 from torchsummary import summary
 import torchvision.models as tmodel
@@ -86,20 +85,8 @@ class Black_Magic():
     print(params)
 
 
-  def read_data_imagenette(self):
-    data_train = Imagenette('./data/imagenette',
-                       transform=transforms.Compose([
-                           transforms.Resize((128, 128)),
-                           transforms.ToTensor(),
-                           transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                           ]))
+  def read_data_imagenette(self,data_train,data_test):
 
-    data_test = Imagenette('./data/imagenette',
-                      train=False,
-                      transform=transforms.Compose([
-                          transforms.Resize((128, 128)),
-                          transforms.ToTensor(),
-                          transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]))
     data_train_loader = DataLoader(data_train, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), shuffle=True, num_workers=8)
     data_test_loader = DataLoader(data_test, batch_size=int(self.params[Constants.BATCH_SIZE][Constants.VALUE]), num_workers=8)
     return data_train_loader,data_test_loader

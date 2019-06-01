@@ -21,6 +21,8 @@ import time
 import torchvision.transforms as transforms
 import uuid
 import string
+from imagenette import Imagenette
+
 training_process = None
 
 def random_text_generator():
@@ -41,13 +43,30 @@ logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
 
+
+#read data globally
+data_train = Imagenette('./data/imagenette',
+                       transform=transforms.Compose([
+                           transforms.Resize((128, 128)),
+                           transforms.ToTensor(),
+                           transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                           ]))
+
+data_test = Imagenette('./data/imagenette',
+                      train=False,
+                      transform=transforms.Compose([
+                          transforms.Resize((128, 128)),
+                          transforms.ToTensor(),
+                          transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]))
+
 @app.route("/save_backgroundinfo", methods=['GET','POST'])
 def save_background_info():
   content = request.get_data()
   my_json = content.decode('utf8').replace("'",'"')
   data_dict = json.loads(my_json,cls=Decoder_int)
   cursor = connect(logger)
-  user_ids = fetch_all_users(cursor,logger)
+  if cursor is not None:
+    user_ids = fetch_all_users(cursor,logger)
   found = False;
   user_id=''
   while not found:
@@ -55,7 +74,8 @@ def save_background_info():
     if (user_id not in user_ids) and user_id is not '':
       found=True
   data_dict['user_id'] = user_id
-  result = insert_background_info(cursor,data_dict,logger)
+  if cursor is not None:
+    result = insert_background_info(cursor,data_dict,logger)
   logger.debug(json.dumps(result))
   return json.dumps(result)
 
@@ -64,7 +84,8 @@ def save_background_info():
 def get_user_results():
   data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
   cursor = connect(logger)
-  results = get_result_data(cursor,data_dict['user_id'],logger)
+  if cursor is not None:
+    results = get_result_data(cursor,data_dict['user_id'],logger)
   #logger.debug(results)
   if results is None:
     return json.dumps({"status": 0})
@@ -107,7 +128,8 @@ def startTheModel():
     data_dict = set_defaults(data_dict)
     cursor = connect(logger)
     #to handle cases where the training is killed intermediately
-    row_id = insert_user_results(cursor,json.dumps(data_dict),-2,-1,logger,data_dict['user_id'])
+    if cursor is not None:
+      row_id = insert_user_results(cursor,json.dumps(data_dict),-2,-1,logger,data_dict['user_id'])
     if row_id is not None:
       data_dict['row_id'] = row_id
     else:
@@ -148,7 +170,7 @@ def cancel_model_training():
 
 
 def main(params,logger):
-
+  global data_train, data_test
   start_time = time.time()
 
   #set defaults
@@ -159,7 +181,7 @@ def main(params,logger):
   logger.info(json.dumps(params))
   #read data
   # data_train_loader,data_test_loader = container.read_data_mnist()
-  data_train_loader,data_test_loader = container.read_data_imagenette()
+  data_train_loader,data_test_loader = container.read_data_imagenette(data_train,data_test)
   # container.read_fastai_imagenette()
   #train the model
   precision = None
@@ -241,8 +263,8 @@ def set_values(params):
 if __name__ == '__main__':
   serve(app,host='145.94.127.202', port=5001)
 
-  #params = {"epochs": {"value": 25, "comment": ""}, "batchSize": {"value": 100.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": 0.0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda": {"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
-  #main(params,logger)
+  # params = {"epochs": {"value": 25, "comment": ""}, "batchSize": {"value": 100.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": 0.0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda": {"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
+  # main(params,logger)
 
  # main_json = {"epoch": {"comments": "", "value": 50.0}, "batch_size": {"comments": "", "value": 1}, "learning_rate": {"comments": "", "value": 0.0001}, "eps": {"comments": "", "value": 0.0001}, "weight_decay": {"comments": "", "value": 1e-05}, "rho": {"comments": "", "value": ""}, "lr_decay": {"comments": "", "value": ""}, "initial_accumulator_value": {"comments": "", "value": ""}, "alpha": {"comments": "", "value": 0.01}, "lambd": {"comments": "", "value": ""}, "momentum": {"comments": "", "value": 0.1}, "loss_function": {"comments": "", "value": "negative_log_likelihood"}, "optimizer": {"comments": "", "value": "adam_optimizer"}}
   # # main(main_json)
