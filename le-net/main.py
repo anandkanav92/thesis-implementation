@@ -22,6 +22,7 @@ import torchvision.transforms as transforms
 import uuid
 import string
 from imagenette import Imagenette
+from configparser import ConfigParser
 
 training_process = None
 
@@ -44,7 +45,7 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 
-#read data globally
+read data globally
 data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
                            transforms.Resize((128, 128)),
@@ -69,10 +70,13 @@ def save_background_info():
     user_ids = fetch_all_users(cursor,logger)
   found = False;
   user_id=''
-  while not found:
+  if user_ids is None:
     user_id = uuid.uuid4().hex[:6].upper()
-    if (user_id not in user_ids) and user_id is not '':
-      found=True
+  else:
+    while not found:
+      user_id = uuid.uuid4().hex[:6].upper()
+      if (user_id not in user_ids) and user_id is not '':
+        found=True
   data_dict['user_id'] = user_id
   if cursor is not None:
     result = insert_background_info(cursor,data_dict,logger)
@@ -261,7 +265,22 @@ def set_values(params):
 
 
 if __name__ == '__main__':
-  serve(app,host='145.94.127.202', port=5001)
+  CONFIG_FILE = "./config_file.ini"
+
+  parser = ConfigParser()
+
+  parser.read(CONFIG_FILE)
+  section = "server"
+  server = {}
+  if parser.has_section(section):
+      params = parser.items(section)
+      for param in params:
+          server[param[0]] = param[1]
+  else:
+      raise Exception('Section {0} not found in the {1} file'.format(section, filename))
+
+  logger.debug("server info: {}".format(server))
+  serve(app,host=server['host'], port=server['port'])
 
   # params = {"epochs": {"value": 25, "comment": ""}, "batchSize": {"value": 100.0, "comment": ""}, "lossFunction": {"value": "cross_entropy", "comment": ""}, "optimizer": {"value": "adam_optimizer", "comment": ""}, "learningRate": {"value": 0.0001, "comment": ""}, "epsilon": {"value": 1e-05, "comment": ""}, "weightDecay": {"value": 0.001, "comment": ""}, "rho": {"value": 0.9, "comment": ""}, "learningRateDecay": {"value": 0, "comment": ""}, "initialAccumulator": {"value": 0.1, "comment": ""}, "alpha": {"value": 0, "comment": ""}, "lambda": {"value": 0.01, "comment": ""}, "momentum": {"value": 0.9, "comment": ""}, "user_id": "F88BC8"}
   # main(params,logger)
