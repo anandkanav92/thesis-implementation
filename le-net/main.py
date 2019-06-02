@@ -66,6 +66,7 @@ def save_background_info():
   my_json = content.decode('utf8').replace("'",'"')
   data_dict = json.loads(my_json,cls=Decoder_int)
   cursor = connect(logger)
+  user_ids = []
   if cursor is not None:
     user_ids = fetch_all_users(cursor,logger)
   found = False;
