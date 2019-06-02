@@ -45,7 +45,7 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 
-read data globally
+# read data globally
 data_train = Imagenette('./data/imagenette',
                        transform=transforms.Compose([
                            transforms.Resize((128, 128)),
