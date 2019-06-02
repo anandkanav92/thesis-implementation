@@ -158,9 +158,9 @@ class Black_Magic():
 
       if self.viz.check_connection() and self.push_to_viz:
             #env="RANDOM12345"
-        self.epoch_win = self.viz.line(torch.Tensor(epoch_loss_list), torch.Tensor(epoch_list),
+        self.epoch_win = self.viz.line(torch.Tensor(loss.detach().cpu().item()), torch.Tensor(epoch+1),
                                    win=self.epoch_win, name='current_epoch_loss',
-                                   update=(None if self.epoch_win is None else 'append'),
+                                   update=(None if self.epoch_win is None else 'repl'),
                                    opts=self.epoch_win_opts)
 
     #clear enviroment
