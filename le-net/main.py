@@ -79,6 +79,7 @@ def save_background_info():
       if (user_id not in user_ids) and user_id is not '':
         found=True
   data_dict['user_id'] = user_id
+  result = {'status': 0}
   if cursor is not None:
     result = insert_background_info(cursor,data_dict,logger)
   logger.debug(json.dumps(result))
@@ -89,6 +90,7 @@ def save_background_info():
 def get_user_results():
   data_dict = json.loads(json.dumps(request.args),cls=Decoder_int)
   cursor = connect(logger)
+  results = []
   if cursor is not None:
     results = get_result_data(cursor,data_dict['user_id'],logger)
   #logger.debug(results)
@@ -133,6 +135,7 @@ def startTheModel():
     data_dict = set_defaults(data_dict)
     cursor = connect(logger)
     #to handle cases where the training is killed intermediately
+    row_id = None
     if cursor is not None:
       row_id = insert_user_results(cursor,json.dumps(data_dict),-2,-1,logger,data_dict['user_id'])
     if row_id is not None:
