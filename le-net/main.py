@@ -72,10 +72,10 @@ def save_background_info():
   found = False;
   user_id=''
   if user_ids is None:
-    user_id = uuid.uuid4().hex[:6].upper()
+    user_id = uuid.uuid4().hex[:6].upper() + 'A'
   else:
     while not found:
-      user_id = uuid.uuid4().hex[:6].upper()
+      user_id = uuid.uuid4().hex[:6].upper() + 'A'
       if (user_id not in user_ids) and user_id is not '':
         found=True
   data_dict['user_id'] = user_id
