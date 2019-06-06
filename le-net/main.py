@@ -118,7 +118,7 @@ def startTheModel():
   logger.addHandler(file_handler)
 
   logger.debug("data_dict['finalSubmission']['value'] {} and training_process {}".format(type(data_dict['finalSubmission']['value']),training_process))
-  if data_dict['finalSubmission']['value'] == True and training_process is None:
+  if data_dict['finalSubmission']['value'] == True and (training_process is None or (not training_process.is_alive())):
     cursor = connect(logger)
     if cursor is not None:
       if insert_user_results_final(cursor,json.dumps(data_dict),logger,data_dict['user_id']):
@@ -237,7 +237,7 @@ def set_defaults(params):
   if params[Constants.BATCH_SIZE][Constants.VALUE] == '':
     params[Constants.BATCH_SIZE][Constants.VALUE] = 1
   if params[Constants.LEARNING_RATE][Constants.VALUE] == '':
-    params[Constants.LEARNING_RATE][Constants.VALUE] = 1
+    params[Constants.LEARNING_RATE][Constants.VALUE] = .01
   if params[Constants.WEIGHT_DECAY][Constants.VALUE] == '':
     params[Constants.WEIGHT_DECAY][Constants.VALUE] = 1
   return params
