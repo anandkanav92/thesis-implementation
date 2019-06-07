@@ -10,9 +10,9 @@ def insert_user(cursor,name,background_info):
 
 def insert_user_results(cursor,params,accuracy,time_taken,logger,user_id):
   try:
-    logger.debug("Inserting into user_info... {},{},{}".format(user_id,params,accuracy))
+    logger.debug("Inserting into user_info... {},{},{}".format(str(user_id),params,accuracy))
     query = """ INSERT INTO user_results ( params, accuracy,time_taken,user_id) VALUES (%s,%s,%s,%s) RETURNING id"""
-    record_to_insert = (params, accuracy,time_taken,user_id)
+    record_to_insert = (params, accuracy,time_taken,str(user_id))
     cursor.execute(query, record_to_insert)
     id_row = cursor.fetchone()[0]
     logger.debug("Inserted row here {}".format(id_row))
