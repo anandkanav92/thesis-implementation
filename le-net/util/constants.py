@@ -15,6 +15,10 @@ class Constants:
   LAMBD = "lambda"
   ALPHA = "alpha"
   EPS = "epsilon"
+  BETA1 = "beta1"
+  BETA2 = "beta2"
+
+
   MOMENTUM = "momentum"
   WEIGHT_DECAY = "weightDecay"
   LOSS_FUNCTION = "lossFunction"

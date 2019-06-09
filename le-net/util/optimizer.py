@@ -5,7 +5,7 @@ import pdb
 
 #torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
 def adam_optimizer(model,params):
-  return optim.Adam(model.parameters(), lr=params[Constants.LEARNING_RATE][Constants.VALUE],eps=params[Constants.EPS][Constants.VALUE],weight_decay=params[Constants.WEIGHT_DECAY][Constants.VALUE])
+  return optim.Adam(model.parameters(), lr=params[Constants.LEARNING_RATE][Constants.VALUE],eps=params[Constants.EPS][Constants.VALUE],weight_decay=params[Constants.WEIGHT_DECAY][Constants.VALUE],betas=(params[Constants.BETA1][Constants.VALUE],params[Constants.BETA2][Constants.VALUE]))
 
 #torch.optim.Adadelta(params, lr=1.0, rho=0.9, eps=1e-06, weight_decay=0)
 def ada_delta(model,params):

@@ -25,7 +25,7 @@ from imagenette import Imagenette
 from configparser import ConfigParser
 
 training_process = None
-
+row_id = None
 def random_text_generator():
   x = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
   return x.join(str(time.time()))
@@ -103,7 +103,7 @@ def get_user_results():
 
 @app.route("/run_model", methods=['GET','POST'])
 def startTheModel():
-  global training_process
+  global training_process,row_id
   content = request.get_data()
   my_json = content.decode('utf8').replace("'", '"')
   data_dict = json.loads(my_json,cls=Decoder)
@@ -135,7 +135,6 @@ def startTheModel():
     data_dict = set_defaults(data_dict)
     cursor = connect(logger)
     #to handle cases where the training is killed intermediately
-    row_id = None
     if cursor is not None:
       row_id = insert_user_results(cursor,json.dumps(data_dict),-2,-1,logger,data_dict['user_id'])
     if row_id is not None:
@@ -172,6 +171,15 @@ def cancel_model_training():
     if not training_process.is_alive():
       logger.debug(json.dumps({'status': 1}))
       logger.debug(training_process.exitcode)
+      cursor = connect(logger)
+      if cursor is not None:
+        if row_id is not None:
+          if update_user_results(cursor,-3,float(-1),logger,row_id):
+            logger.info("Successfully updated cancelled job details.")
+          else:
+            logger.info("update failed.")
+        else:
+          logger.info("row not found.")
       return json.dumps(json.dumps({'status': 1})) #means still killed
   logger.debug(training_process)
   return json.dumps(json.dumps({'status': 0})) #means running
@@ -198,7 +206,7 @@ def main(params,logger):
     precision = container.predict(data_test_loader)
   else:
     container.precision = -1
-    precision = -1
+    precision = -1 #NAN found
   total_time = time.time() - start_time
   logger.info("training and testing finished.")
   cursor = connect(logger)
@@ -237,9 +245,13 @@ def set_defaults(params):
   if params[Constants.BATCH_SIZE][Constants.VALUE] == '':
     params[Constants.BATCH_SIZE][Constants.VALUE] = 1
   if params[Constants.LEARNING_RATE][Constants.VALUE] == '':
-    params[Constants.LEARNING_RATE][Constants.VALUE] = .01
+    params[Constants.LEARNING_RATE][Constants.VALUE] = .001
   if params[Constants.WEIGHT_DECAY][Constants.VALUE] == '':
-    params[Constants.WEIGHT_DECAY][Constants.VALUE] = 1
+    params[Constants.WEIGHT_DECAY][Constants.VALUE] = 0
+  if params[Constants.BETA1][Constants.VALUE] == '':
+    params[Constants.WEIGHT_DECAY][Constants.VALUE] = .9
+  if params[Constants.BETA2][Constants.VALUE] == '':
+    params[Constants.WEIGHT_DECAY][Constants.VALUE] = .999
   return params
 
 
