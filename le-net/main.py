@@ -249,9 +249,9 @@ def set_defaults(params):
   if params[Constants.WEIGHT_DECAY][Constants.VALUE] == '':
     params[Constants.WEIGHT_DECAY][Constants.VALUE] = 0
   if params[Constants.BETA1][Constants.VALUE] == '':
-    params[Constants.WEIGHT_DECAY][Constants.VALUE] = .9
+    params[Constants.BETA1][Constants.VALUE] = .9
   if params[Constants.BETA2][Constants.VALUE] == '':
-    params[Constants.WEIGHT_DECAY][Constants.VALUE] = .999
+    params[Constants.BETA2][Constants.VALUE] = .999
   return params
 
 
