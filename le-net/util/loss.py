@@ -10,7 +10,7 @@ def mean_squared_loss():
   return nn.MSELoss()
 
 def negative_log_likelihood():
-  return nn.NLLLoss()
+  return nn.CrossEntropyLoss()
 
 def kl_divergence():
   return nn.KLDivLoss()
