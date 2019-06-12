@@ -119,7 +119,9 @@ class Black_Magic():
       if "main" in env_list:
         logging.debug("deleting visdom enviroment")
         self.viz.close(win=None)
-
+    m = None
+    if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == 'negative_log_likelihood':
+      m = nn.LogSoftmax(dim=1)
     setattr(Black_Magic, "criterion", self._get_loss_function(self.params[Constants.LOSS_FUNCTION][Constants.VALUE]))
     optimizer = self._get_optimizer(self.params[Constants.OPTIMIZER][Constants.VALUE])
     self.model.train()
@@ -141,7 +143,11 @@ class Black_Magic():
           labels = labels.cuda()
 
         output = self.model(images)
-        loss = self.criterion(output, labels)
+        if m is not None:
+          loss = self.criterion(m(output), labels)
+        else:
+          loss = self.criterion(output, labels)
+
         batch_loss_list.append(loss.detach().cpu().item())
         batch_list.append(i+1)
 
@@ -200,6 +206,9 @@ class Black_Magic():
     avg_loss = 0.0
     labels_l1 = None
     dataset_test_size = len(data_test_loader.dataset)
+    m = None
+    if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == 'negative_log_likelihood':
+      m = nn.LogSoftmax(dim=1)
     for i, (images, labels) in enumerate(data_test_loader):
 
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
@@ -218,6 +227,8 @@ class Black_Magic():
 
       if self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.MSE or self.params[Constants.LOSS_FUNCTION][Constants.VALUE] == Constants.L1_LOSS:
         avg_loss += self.criterion(output, labels_l1).sum()
+      elif (self.params[Constants.LOSS_FUNCTION][Constants.VALUE]=='negative_log_likelihood') and (m is not None):
+        avg_loss += self.criterion(m(output), labels).sum()
       else:
         avg_loss += self.criterion(output, labels).sum()
 
