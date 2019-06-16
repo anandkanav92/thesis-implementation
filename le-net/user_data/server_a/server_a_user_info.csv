@@ -1,9 +1,14 @@
-BC7935A	36	masters-first
-6B392DA	4	masters-first
-8960B0A	0	high_school
-02AECEA	9	bachelors
-9950E8A	9	masters-completed
-B65339A	0	masters-first
-6EBC93A	0	masters-completed
-114076A	24	masters-completed
-751A69A	0	masters-first
+user_id,user_experience,user_education_background
+BC7935A,36,masters-first
+6B392DA,4,masters-first
+8960B0A,0,high_school
+02AECEA,9,bachelors
+9950E8A,9,masters-completed
+B65339A,0,masters-first
+6EBC93A,0,masters-completed
+114076A,24,masters-completed
+751A69A,0,masters-first
+088842A,3,masters-first
+95E517A,90,high_school
+342496A,3,masters-first
+7FF276A,99,high_school
